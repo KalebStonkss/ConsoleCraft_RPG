@@ -2,16 +2,11 @@
 #include <stdlib.h>
 #include <time.h>
 #define TAM 10
-
-int main(){
-    char **mundo = (char **)malloc(TAM * sizeof(char *));
-    for(int i = 0;i<TAM;i++){
-        mundo[i] = (char *)calloc(TAM, sizeof(char));
-    }
+void criarMundo(int seed, char **mundo){
     srand(time(NULL));
     for(int i = 0; i<TAM;i++){
         for(int j = 0;j<TAM;j++){
-            int seed = rand() % 100;
+            seed = rand() % 100;
             if(seed < 10){
                 mundo[i][j] = '^';
             }
@@ -23,6 +18,23 @@ int main(){
             }
         }
     }
+}
+void jogador(char **mundo){
+    char jogador = 'P';
+    char *pjogador = &jogador;
+    int x = rand() % TAM;
+    int y = rand() % TAM;
+    mundo[x][y] = *pjogador;
+}
+int main(){
+    int seed = 0;
+    int *pseed = &seed;
+    char **mundo = (char **)malloc(TAM * sizeof(char *));
+    for(int i = 0;i<TAM;i++){
+        mundo[i] = (char *)calloc(TAM, sizeof(char));
+    }
+    criarMundo(*pseed,mundo);
+    jogador(mundo);
     for(int i = 0;i<TAM;i++){
         for(int j=0;j<TAM;j++){
             printf("%c ",mundo[i][j]);
@@ -30,7 +42,7 @@ int main(){
         printf("\n");
     }
     for(int i = 0;i<TAM;i++){
-        free(mundo);
+        free(mundo[i]);
     }
     free(mundo);
 }
