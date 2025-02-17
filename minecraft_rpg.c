@@ -29,10 +29,10 @@ void jogador(char **mundo,char **armazenamento,int *x,int *y){
     *y = rand() % TAM;
     mundo[*x][*y] = *pjogador;
 }
-void movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *y){
+int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *y){
     char movimento;
     char *wasd = &movimento;
-    puts("Digite um movimento estilo WASD");
+    puts("Digite um movimento estilo WASD || Para sair do jogo, digite X \n");
     scanf(" %c",wasd);
     switch(*wasd){
         case 'W':
@@ -63,9 +63,14 @@ void movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int 
             mundo[*x][*y] = jogador;
            }
            break;
+        case 'x':
+        case 'X':
+           return 1;
+           break;
         default:
-           printf("Movimento inválido, use WASD");
+           printf("Movimento inválido, use WASD \n");
     }
+    return 0;
 }
 int main(){
     int seed = 0;
@@ -87,8 +92,12 @@ int main(){
         }
         printf("\n");
     }
+    printf("Elementos do jogo: \n");
+    printf("Montanha = ^ \n Água = ~ \n Terra = . \n Jogador = P");
     while (1){
-        movimentoJogador(mundo,armazenamento,'P',&x,&y);
+        if(movimentoJogador(mundo,armazenamento,'P',&x,&y)){
+            break;
+        }
         for(int i = 0;i<TAM;i++){
             for(int j=0;j<TAM;j++){
                 printf("%c ",mundo[i][j]);
