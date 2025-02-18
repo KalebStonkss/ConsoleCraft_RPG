@@ -9,9 +9,9 @@
   - No Prompt de Comando, digite "gcc -o minecraft minecraft_rpg.c"(sem as aspas), dê enter
   - Depois, digite "minecraft.exe"(sem as aspas) e dê enter para o jogo começar
 ## Elementos do Jogo
-  - o **^**  significa montanha (⛰)
-  - o **~**  significa água (💧)
-  - o &nbsp;**.**&nbsp;  significa terra (🌳)
+  -  **^**  significa montanha (⛰)
+  -  **~**  significa água (💧)
+  -  &nbsp;**.**&nbsp;  significa terra (🌳)
   - P é o jogador, você :D
 ## Progresso atual do código
   - O jogo ainda está em desenvolvimento :)
