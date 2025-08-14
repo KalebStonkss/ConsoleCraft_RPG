@@ -14,4 +14,4 @@
   -  &nbsp;**.**&nbsp;  significa terra (🌳)
   - P é o jogador, você :D
 ## Progresso atual do código
-  - O jogo ainda está em desenvolvimento :)
+  - Geração aleatória de zumbis pelo mapa
