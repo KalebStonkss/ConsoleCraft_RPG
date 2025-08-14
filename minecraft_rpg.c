@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <time.h>
 #define TAM 10
+
+struct Inimigo{
+    int ataque;
+    int vida;
+};
 void criarMundo(int seed, char **mundo,char **armazenamento){
     srand(time(NULL));
     for(int i = 0; i<TAM;i++){
@@ -22,9 +27,26 @@ void criarMundo(int seed, char **mundo,char **armazenamento){
         }
     }
 }
+void zumbi(char **mundo,char **armazenamento,int *xzumbi,int *yzumbi,int *x,int *y){
+    struct Inimigo inimigo1;
+    char zumbi = 'Z';
+    inimigo1.vida = 35;
+    inimigo1.ataque = 10;
+    int quantidade = rand() % 10 + 1;
+    for(int i = 0;i<quantidade;i++){
+        *xzumbi = rand() % TAM;
+        *yzumbi = rand() % TAM;
+        while(mundo[*xzumbi][*yzumbi] == mundo[*x][*y]){
+            *xzumbi = rand() % TAM;
+            *yzumbi = rand() % TAM;
+        }
+        mundo[*xzumbi][*yzumbi] = zumbi;
+    }
+}
 void jogador(char **mundo,char **armazenamento,int *x,int *y){
     char jogador = 'P';
     char *pjogador = &jogador;
+    int vida = 100;
     *x = rand() % TAM;
     *y = rand() % TAM;
     mundo[*x][*y] = *pjogador;
@@ -35,6 +57,7 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
     puts("Digite um movimento estilo WASD || Para sair do jogo, digite X \n");
     scanf(" %c",wasd);
     switch(*wasd){
+        case 'w':
         case 'W':
            if (*x > 0){
             mundo[*x][*y] = armazenamento[*x][*y];
@@ -42,6 +65,7 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
             mundo[*x][*y] = jogador;
            }
            break;
+        case 'a':
         case 'A':
            if (*y > 0){
             mundo[*x][*y] = armazenamento[*x][*y];
@@ -49,6 +73,7 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
             mundo[*x][*y] = jogador;
            }
            break;
+        case 's':
         case 'S':
             if (*x < TAM-1){
              mundo[*x][*y] = armazenamento[*x][*y];
@@ -56,6 +81,7 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
              mundo[*x][*y] = jogador;
             }
             break;
+        case 'd':
         case 'D':
            if (*y < TAM-1){
             mundo[*x][*y] = armazenamento[*x][*y];
@@ -84,8 +110,10 @@ int main(){
         armazenamento[i] = (char *)calloc(TAM, sizeof(char));
     }
     int x,y;
+    int xzumbi,yzumbi;
     criarMundo(*pseed,mundo,armazenamento);
     jogador(mundo,armazenamento,&x,&y);
+    zumbi(mundo,armazenamento,&xzumbi,&yzumbi,&x,&y);
     for(int i = 0;i<TAM;i++){
         for(int j=0;j<TAM;j++){
             printf("%c ",mundo[i][j]);
