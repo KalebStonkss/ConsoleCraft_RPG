@@ -15,3 +15,4 @@
   - P é o jogador, você :D
 ## Progresso atual do código
   - Geração aleatória de zumbis pelo mapa
+  - Modo de ataque
