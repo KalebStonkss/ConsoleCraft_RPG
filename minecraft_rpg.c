@@ -3,6 +3,7 @@
 #include <time.h>
 #include <windows.h>
 #define TAM 10
+//P.S, quando for usar os emojis, usa esses (tem a mesma quantidade de bytes, se preferir mude para outros emojis com os mesmos bytes): 🤠💀🗻💧🟩
 struct Inimigo{
     int ataque;
     int vida;
@@ -48,9 +49,26 @@ void zumbi(char **mundo,char **armazenamento, struct Inimigo inimigo1[],int *xzu
         (*quantidade)++;
     }
 }
-void ataque(int vida, int ataque){
+int ataque(int vida, int ataque, struct Inimigo inimigo1[], int indice){
+    char comando;
     printf("Você está atacando >:D \n");
     printf("Vida = %d \n",vida);
+    while(vida !=0 && inimigo1[indice].vida !=0){
+        puts("Digite Z para atacar \n");
+        scanf(" %c",&comando);
+        if(comando == 'z' || comando == 'Z'){
+            inimigo1[indice].vida = inimigo1[indice].vida - ataque;
+            printf("Você usou um ataque com %d de dano \n Vida atual do inimigo = %d \n", ataque, inimigo1[indice].vida);
+            vida = vida - inimigo1[indice].ataque;
+            printf("O inimigo usou um ataque com %d de dano \n Sua vida atual = %d \n", inimigo1[indice].ataque, vida);
+        }
+        if(vida <= 0){
+            return 1;
+        }
+        else if(inimigo1[indice].vida <= 0){
+            return 0;
+        }
+    }
 }
 void jogador(char **mundo,char **armazenamento,int *x,int *y){
     char jogador = 'P';
@@ -156,7 +174,13 @@ int main(){
         //Checagem da posição do jogador e do inimigo
         for(int i = 0; i<quantidadeInimigos;i++){
             if(x == inimigo[i].x && y == inimigo[i].y){
-                ataque(vidaInicialJogador,ataqueInicialJogador);
+                if(ataque(vidaInicialJogador,ataqueInicialJogador,inimigo,i)){
+                    printf("\nGame Over :<\n Reinicie o jogo! \n");
+                    exit(0);
+                }
+                else{
+                    printf("Você venceu o inimigo!\n");
+                }
             }
         }
 
