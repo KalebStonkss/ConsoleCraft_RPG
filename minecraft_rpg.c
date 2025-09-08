@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <windows.h>
-#define TAM 10
+#define TAM 20
 //P.S, quando for usar os emojis, usa esses (tem a mesma quantidade de bytes, se preferir mude para outros emojis com os mesmos bytes): 🤠💀🗻💧🟩
 struct Inimigo{
     int ataque;
@@ -10,6 +10,24 @@ struct Inimigo{
     int x;
     int y;
 };
+
+//função estética para esconder o cursor que aparece toda vez que o mapa é recarregado
+void hideCursor() {
+    HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO info;
+    info.dwSize = 100;
+    info.bVisible = FALSE;
+    SetConsoleCursorInfo(consoleHandle, &info);
+}
+void gotoxy(int x, int y){
+    COORD coord;
+    coord.X = x;
+    coord.Y = y;
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+}
+
+
+//função para criar o mundo inicial
 void criarMundo(int seed, char **mundo,char **armazenamento){
     srand(time(NULL));
     for(int i = 0; i<TAM;i++){
@@ -29,6 +47,17 @@ void criarMundo(int seed, char **mundo,char **armazenamento){
             }
         }
     }
+}
+void desenharUI(char **mundo){
+    gotoxy(0,0);
+    for(int i = 0;i<TAM;i++){
+        for(int j=0;j<TAM;j++){
+            printf("%c ",mundo[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+    printf("Digite um movimento estilo WASD || Para sair do jogo, digite X \n");
 }
 void zumbi(char **mundo,char **armazenamento, struct Inimigo inimigo1[],int *xzumbi,int *yzumbi,int *quantidade,int *x,int *y){
     char zumbi = 'Z';
@@ -82,7 +111,6 @@ void jogador(char **mundo,char **armazenamento,int *x,int *y){
 int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *y){
     char movimento;
     char *wasd = &movimento;
-    puts("Digite um movimento estilo WASD || Para sair do jogo, digite X \n");
     scanf(" %c",wasd);
     switch(*wasd){
         case 'w':
@@ -122,6 +150,7 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
            return 1;
            break;
         default:
+           system("cls");
            printf("Movimento inválido, use WASD \n");
     }
     return 0;
@@ -129,7 +158,7 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
 int main(){
     system("cls");
     SetConsoleOutputCP(CP_UTF8);
-
+    hideCursor();
     struct Inimigo inimigo[20];
     int quantidadeInimigos = 0;
 
@@ -138,18 +167,24 @@ int main(){
     int seed = 0;
     int *pseed = &seed;
     char **mundo = (char **)malloc(TAM * sizeof(char *));
+
+
     for(int i = 0;i<TAM;i++){
         mundo[i] = (char *)calloc(TAM, sizeof(char));
     }
+
     char **armazenamento = (char **)malloc(TAM * sizeof(char *));
     for(int i = 0;i<TAM;i++){
         armazenamento[i] = (char *)calloc(TAM, sizeof(char));
     }
+
     int x,y;
     int xzumbi,yzumbi;
+
     criarMundo(*pseed,mundo,armazenamento);
     jogador(mundo,armazenamento,&x,&y);
     zumbi(mundo,armazenamento,inimigo,&xzumbi,&yzumbi,&quantidadeInimigos,&x,&y);
+
     for(int i = 0;i<TAM;i++){
         for(int j=0;j<TAM;j++){
             printf("%c ",mundo[i][j]);
@@ -157,29 +192,33 @@ int main(){
         printf("\n");
     }
     printf("Elementos do jogo: \n");
-    printf("Montanha = ^ \n Água = ~ \n Terra = . \n Jogador = P");
+    printf("Montanha = ^ \n Água = ~ \n Terra = . \n Jogador = P \n");
+    printf("Pressione qualquer tecla para continuar");
+    getchar();
+    system("cls");
     while (1){
+        //Geração do mundo, irá ser gerado enquanto o while não for 1
+        desenharUI(mundo);
+
         if(movimentoJogador(mundo,armazenamento,'P',&x,&y)){
             break;
-        }
-        //Geração do mundo, irá ser gerado enquanto o while não for 1
-        system("cls");
-        for(int i = 0;i<TAM;i++){
-            for(int j=0;j<TAM;j++){
-                printf("%c ",mundo[i][j]);
-            }
-            printf("\n");
         }
 
         //Checagem da posição do jogador e do inimigo
         for(int i = 0; i<quantidadeInimigos;i++){
             if(x == inimigo[i].x && y == inimigo[i].y){
+                system("cls");
                 if(ataque(vidaInicialJogador,ataqueInicialJogador,inimigo,i)){
                     printf("\nGame Over :<\n Reinicie o jogo! \n");
                     exit(0);
                 }
                 else{
-                    printf("Você venceu o inimigo!\n");
+                    system("cls");
+                    printf("--------------------------\n");
+                    printf("Você venceu o inimigo!\n Pressione Enter para continuar! \n");
+                    getchar();
+                    getchar();
+                    desenharUI(mundo);
                 }
             }
         }
