@@ -6,7 +6,7 @@
 ### Windows
   - **Requisitos Mínimos**: GCC instalado no computador (por meio do MinGW ou WSL)
   - No prompt de comando, digite "chcp 65001"(sem as aspas) para o Windows detectar acentuações corretamente
-  - No Prompt de Comando, digite "gcc -o minecraft minecraft_rpg.c"(sem as aspas), dê enter
+  - No Prompt de Comando, digite "gcc -o minecraft.exe minecraft_rpg.c"(sem as aspas), dê enter
   - Depois, digite "minecraft.exe"(sem as aspas) e dê enter para o jogo começar
 ## Elementos do Jogo
   -  **^**  significa montanha (⛰)
