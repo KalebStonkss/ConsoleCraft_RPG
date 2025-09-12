@@ -69,12 +69,31 @@ void zumbi(char **mundo,char **armazenamento, struct Inimigo inimigo1[],int *xzu
         inimigo1[*quantidade].ataque = 10;
         inimigo1[*quantidade].x = *xzumbi;
         inimigo1[*quantidade].y = *yzumbi;
+        //solução usada pra caso o inimigo queira nascer no mesmo quadrado do jogar, seria bizarro lidar com um inimigo logo no primeiro segundo do jogo :)
         while(mundo[*xzumbi][*yzumbi] == mundo[*x][*y]){
             *xzumbi = rand() % TAM;
             *yzumbi = rand() % TAM;
         }
         mundo[*xzumbi][*yzumbi] = zumbi;
 
+        (*quantidade)++;
+    }
+}
+void esqueleto(char **mundo,char **armazenamento, struct Inimigo inimigo2[],int *xesqueleto, int *yesqueleto,int *quantidade,int *x,int *y){
+    char esqueleto = 'E';
+    int quantidadeSpawn = rand() % 5 + 1;
+    for(int i = 0; i<quantidadeSpawn;i++){
+        *xesqueleto = rand() % TAM;
+        *yesqueleto = rand() % TAM;
+        inimigo2[*quantidade].vida = 30;
+        inimigo2[*quantidade].ataque = 20;
+        inimigo2[*quantidade].x = *xesqueleto;
+        inimigo2[*quantidade].y = *yesqueleto;
+        while(mundo[*xesqueleto][*yesqueleto] == mundo[*x][*y]){
+            *xesqueleto = rand() % TAM;
+            *yesqueleto = rand() % TAM;
+        }
+        mundo[*xesqueleto][*yesqueleto] = esqueleto;
         (*quantidade)++;
     }
 }
@@ -180,11 +199,11 @@ int main(){
 
     int x,y;
     int xzumbi,yzumbi;
-
+    int xesqueleto,yesqueleto;
     criarMundo(*pseed,mundo,armazenamento);
     jogador(mundo,armazenamento,&x,&y);
     zumbi(mundo,armazenamento,inimigo,&xzumbi,&yzumbi,&quantidadeInimigos,&x,&y);
-
+    esqueleto(mundo,armazenamento,inimigo,&xesqueleto,&yesqueleto,&quantidadeInimigos,&x,&y);
     for(int i = 0;i<TAM;i++){
         for(int j=0;j<TAM;j++){
             printf("%c ",mundo[i][j]);
