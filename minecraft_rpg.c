@@ -11,6 +11,10 @@ struct Inimigo{
     int y;
 };
 
+struct Vila{
+    
+};
+
 //função estética para esconder o cursor que aparece toda vez que o mapa é recarregado
 void hideCursor() {
     HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -33,7 +37,11 @@ void criarMundo(int seed, char **mundo,char **armazenamento){
     for(int i = 0; i<TAM;i++){
         for(int j = 0;j<TAM;j++){
             seed = rand() % 100;
-            if(seed < 10){
+            if(seed < 2){
+                mundo[i][j] = 'V';
+                armazenamento[i][j] = mundo[i][j];
+            }
+            else if(seed < 10){
                 mundo[i][j] = '^';
                 armazenamento[i][j] = mundo[i][j];
             }
@@ -58,6 +66,9 @@ void desenharUI(char **mundo){
     }
     printf("\n");
     printf("Digite um movimento estilo WASD || Para sair do jogo, digite X \n");
+}
+void vila(){
+    printf("Você entrou em uma vila! \n");
 }
 void zumbi(char **mundo,char **armazenamento, struct Inimigo inimigo1[],int *xzumbi,int *yzumbi,int *quantidade,int *x,int *y){
     char zumbi = 'Z';
@@ -240,6 +251,11 @@ int main(){
                     desenharUI(mundo);
                 }
             }
+        }
+        
+        //Sistema para detectar se o jogador vai entrar em uma vila, o jogo identifica se a posição do jogador é igual a posição da vila no mundo sem modificação(o mundo de "armazenamento")
+        if(armazenamento[x][y] == 'V'){
+            vila();
         }
 
     }
