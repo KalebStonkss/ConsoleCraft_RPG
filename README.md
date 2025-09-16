@@ -1,7 +1,8 @@
-# Minecraft estilo RPG - Jogo no Terminal em C 🕹🗺
+# ConsoleCraft RPG - Jogo no Terminal em C 🕹🗺
 ## Introdução 
   - Esse é um projeto pessoal e minha primeira experiência criando um jogo no terminal com a linguagem C
-  - O jogo foi feito com o intuito de ser uma versão RPG do minecraft, com um mundo vasto (não tão vasto assim kk) para o jogador explorar
+  - O jogo foi feito com o intuito de ser uma RPG inspirado em jogos como o Minecraft, com um mundo vasto (não tão vasto assim kk) para o jogador explorar
+  - Feito apenas para fins didáticos, esse projeto não tem afiliação com a Mojang/Microsoft
 ## Como rodar no terminal 📜
 ### Windows
   - **Requisitos Mínimos**: GCC instalado no computador (por meio do MinGW ou WSL)
