@@ -17,3 +17,4 @@
 ## Progresso atual do código
   - Geração aleatória de zumbis e esqueletos pelo mapa
   - Modo de ataque
+  - Geração de vilas
