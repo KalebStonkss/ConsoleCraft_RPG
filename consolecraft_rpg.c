@@ -9,6 +9,7 @@ struct Inimigo{
     int vida;
     int x;
     int y;
+    int estadoAtual;
 };
 
 struct Vila{
@@ -67,9 +68,7 @@ void desenharUI(char **mundo){
     printf("\n");
     printf("Digite um movimento estilo WASD || Para sair do jogo, digite X \n");
 }
-void vila(){
-    printf("Você entrou em uma vila! \n");
-}
+
 void zumbi(char **mundo,char **armazenamento, struct Inimigo inimigo1[],int *xzumbi,int *yzumbi,int *quantidade,int *x,int *y){
     char zumbi = 'Z';
     int quantidadeSpawn = rand() % 10 + 1;
@@ -80,6 +79,7 @@ void zumbi(char **mundo,char **armazenamento, struct Inimigo inimigo1[],int *xzu
         inimigo1[*quantidade].ataque = 10;
         inimigo1[*quantidade].x = *xzumbi;
         inimigo1[*quantidade].y = *yzumbi;
+        inimigo1[*quantidade].estadoAtual = 1;
         //solução usada pra caso o inimigo queira nascer no mesmo quadrado do jogar, seria bizarro lidar com um inimigo logo no primeiro segundo do jogo :)
         while(mundo[*xzumbi][*yzumbi] == mundo[*x][*y]){
             *xzumbi = rand() % TAM;
@@ -100,6 +100,7 @@ void esqueleto(char **mundo,char **armazenamento, struct Inimigo inimigo2[],int 
         inimigo2[*quantidade].ataque = 20;
         inimigo2[*quantidade].x = *xesqueleto;
         inimigo2[*quantidade].y = *yesqueleto;
+        inimigo2[*quantidade].estadoAtual = 1;
         while(mundo[*xesqueleto][*yesqueleto] == mundo[*x][*y]){
             *xesqueleto = rand() % TAM;
             *yesqueleto = rand() % TAM;
@@ -138,7 +139,7 @@ void jogador(char **mundo,char **armazenamento,int *x,int *y){
     *y = rand() % TAM;
     mundo[*x][*y] = *pjogador;
 }
-int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *y){
+int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *y,int tamanho){
     char movimento;
     char *wasd = &movimento;
     scanf(" %c",wasd);
@@ -149,6 +150,7 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
             mundo[*x][*y] = armazenamento[*x][*y];
             (*x)--;
             mundo[*x][*y] = jogador;
+            return 2;
            }
            break;
         case 'a':
@@ -157,22 +159,25 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
             mundo[*x][*y] = armazenamento[*x][*y];
             (*y)--;
             mundo[*x][*y] = jogador;
+            return 3;
            }
            break;
         case 's':
         case 'S':
-            if (*x < TAM-1){
+            if (*x < tamanho-1){
              mundo[*x][*y] = armazenamento[*x][*y];
              (*x)++;
              mundo[*x][*y] = jogador;
+             return 4;
             }
             break;
         case 'd':
         case 'D':
-           if (*y < TAM-1){
+           if (*y < tamanho-1){
             mundo[*x][*y] = armazenamento[*x][*y];
             (*y)++;
             mundo[*x][*y] = jogador;
+            return 5;
            }
            break;
         case 'x':
@@ -184,6 +189,88 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
            printf("Movimento inválido, use WASD \n");
     }
     return 0;
+}
+void vila(int comando){
+    printf("Você entrou em uma vila! \n");
+    int seedVila,x,y;
+    int tamVila = 10;
+    char **coordenadasVila = (char **)malloc(tamVila * sizeof(char *));
+    char **armazenamentoVila = (char **)malloc(tamVila * sizeof(char *));
+
+    if(coordenadasVila == NULL || armazenamentoVila == NULL){
+            printf("Erro de alocação de memória \n");
+            return;
+    }
+    for(int i = 0; i<tamVila;i++){
+        coordenadasVila[i] = (char *)calloc(tamVila,sizeof(char));
+        armazenamentoVila[i] = (char *)calloc(tamVila,sizeof(char));
+
+        if(coordenadasVila[i] == NULL || armazenamentoVila[i] == NULL){
+            printf("Erro de alocação de memória \n");
+            return;
+        }
+    }
+    for(int i = 0; i<10;i++){
+        for(int j = 0;j<10;j++){
+            seedVila = rand() % 100;
+            if(seedVila < 5){
+                coordenadasVila[i][j] = 'H';
+                armazenamentoVila[i][j] = coordenadasVila[i][j];
+            }
+            else if(seedVila < 100){
+                coordenadasVila[i][j] = '.';
+                armazenamentoVila[i][j] = coordenadasVila[i][j];
+            }
+        }
+    }
+    switch(comando){
+        case 2:
+            x = tamVila-1;
+            y = tamVila/2;
+            break;
+        case 3:
+            x = tamVila/2;
+            y = tamVila-1;
+            break;
+        case 4:
+            x = 0;
+            y = tamVila/2;
+            break;
+        case 5:
+            x = tamVila/2;
+            y = 0;
+            break;
+    }
+    coordenadasVila[x][y] = 'P';
+    while(1){
+        system("cls");
+
+        for(int i = 0; i < tamVila;i++){
+            for(int j = 0;j< tamVila;j++){
+                printf("%c ",coordenadasVila[i][j]);
+            }
+            printf(" \n");
+        }
+
+        int x_ant = x;
+        int y_ant = y;
+        movimentoJogador(coordenadasVila,armazenamentoVila,'P',&x,&y,tamVila);
+        if(x_ant == x && y_ant == y){
+            if(x == 0 || x == tamVila-1 || y == 0 || y == tamVila-1){
+                system("cls");
+                printf("Você está saindo da vila");
+                Sleep(2000);
+                break;
+            }
+        }
+    }
+    
+    for(int i = 0;i < tamVila;i++){
+        free(coordenadasVila[i]);
+        free(armazenamentoVila[i]);
+    }
+    free(coordenadasVila);
+    free(armazenamentoVila);
 }
 int main(){
     system("cls");
@@ -229,20 +316,20 @@ int main(){
     while (1){
         //Geração do mundo, irá ser gerado enquanto o while não for 1
         desenharUI(mundo);
-
-        if(movimentoJogador(mundo,armazenamento,'P',&x,&y)){
+        int armazenarComando = movimentoJogador(mundo,armazenamento,'P',&x,&y,TAM);
+        if(armazenarComando == 1){
             break;
         }
-
         //Checagem da posição do jogador e do inimigo
         for(int i = 0; i<quantidadeInimigos;i++){
-            if(x == inimigo[i].x && y == inimigo[i].y){
+            if(inimigo[i].estadoAtual && x == inimigo[i].x && y == inimigo[i].y){
                 system("cls");
                 if(ataque(vidaInicialJogador,ataqueInicialJogador,inimigo,i)){
                     printf("\nGame Over :<\n Reinicie o jogo! \n");
                     exit(0);
                 }
                 else{
+                    inimigo[i].estadoAtual = 0;
                     system("cls");
                     printf("--------------------------\n");
                     printf("Você venceu o inimigo!\n Pressione Enter para continuar! \n");
@@ -255,7 +342,7 @@ int main(){
         
         //Sistema para detectar se o jogador vai entrar em uma vila, o jogo identifica se a posição do jogador é igual a posição da vila no mundo sem modificação(o mundo de "armazenamento")
         if(armazenamento[x][y] == 'V'){
-            vila();
+            vila(armazenarComando);
         }
 
     }
