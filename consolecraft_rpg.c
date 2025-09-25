@@ -20,6 +20,11 @@ struct Vila{
     char mapa[TAM_VILA][TAM_VILA];
 };
 
+struct SlotItem{
+    int id;
+    int quantidade;
+};
+
 //função estética para esconder o cursor que aparece toda vez que o mapa é recarregado
 void hideCursor() {
     HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -134,8 +139,15 @@ int ataque(int vida, int ataque, struct Inimigo inimigo1[], int indice){
         }
     }
 }
-void inventario(){
-    system("cls");
+void inventario(struct SlotItem mochila[]){
+    for(int i =0;i<15;i++){
+        mochila[i].id = -1;
+        mochila[i].quantidade = 0;
+    }
+    printf("---Inventário---\n");
+    for(int i=0;i<15;i++){
+        printf("%d = ? (Quantidade %d)\n",i,mochila[i].quantidade);
+    }
 }
 void jogador(char **mundo,char **armazenamento,int *x,int *y){
     char jogador = 'P';
@@ -186,6 +198,10 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
             mundo[*x][*y] = jogador;
             return 5;
            }
+           break;
+        case 'i':
+        case 'I':
+           return 6;
            break;
         case 'x':
         case 'X':
@@ -312,6 +328,7 @@ int main(){
     struct Vila vilas[MAX_VILAS_ENCONTRADAS];
     int vilasEncontradas = 0;
 
+    struct SlotItem mochila[15];
     int vidaInicialJogador = 100;
     int ataqueInicialJogador = 15;
     int seed = 0;
@@ -352,6 +369,13 @@ int main(){
         int armazenarComando = movimentoJogador(mundo,armazenamento,'P',&x,&y,TAM);
         if(armazenarComando == 1){
             break;
+        }
+        if(armazenarComando == 6){
+            system("cls");
+            inventario(mochila);
+            getchar();
+            getchar();
+            desenharUI(mundo);
         }
         //Checagem da posição do jogador e do inimigo
         for(int i = 0; i<quantidadeInimigos;i++){
