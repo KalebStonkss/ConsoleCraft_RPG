@@ -15,6 +15,6 @@
   -  &nbsp;**.**&nbsp;  significa terra (🌳)
   - P é o jogador, você :D
 ## Progresso atual do código
-  - Geração aleatória de zumbis e esqueletos pelo mapa
+  - Criação do inventário
   - Modo de ataque
   - Geração de vilas
