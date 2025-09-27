@@ -7,11 +7,13 @@
 #define MAX_VILAS_ENCONTRADAS 20
 //P.S, quando for usar os emojis, usa esses (tem a mesma quantidade de bytes, se preferir mude para outros emojis com os mesmos bytes): 🤠💀🗻💧🟩
 struct Inimigo{
+    int id;
     int ataque;
     int vida;
     int x;
     int y;
     int estadoAtual;
+    int item;
 };
 
 struct Vila{
@@ -78,12 +80,30 @@ void desenharUI(char **mundo){
     printf("Digite um movimento estilo WASD || Para sair do jogo, digite X \n");
 }
 
+void adicionarItem(struct Inimigo inimigo1[], struct SlotItem mochila[],int indice){
+    int item_escolhido = inimigo1[indice].item;
+    for(int i=0;i<15;i++){
+        if(mochila[i].id == item_escolhido){
+            mochila[i].quantidade++;
+            return;
+        }
+    }
+    
+    for(int i=0;i<15;i++){
+        if(mochila[i].id == -1){         
+            mochila[i].id = item_escolhido;
+            mochila[i].quantidade = 1;
+            return;
+        }
+    }
+}
 void zumbi(char **mundo,char **armazenamento, struct Inimigo inimigo1[],int *xzumbi,int *yzumbi,int *quantidade,int *x,int *y){
     char zumbi = 'Z';
     int quantidadeSpawn = rand() % 10 + 1;
     for(int i = 0;i<quantidadeSpawn;i++){
         *xzumbi = rand() % TAM;
         *yzumbi = rand() % TAM;
+        inimigo1[*quantidade].id = 1;
         inimigo1[*quantidade].vida = 35;
         inimigo1[*quantidade].ataque = 10;
         inimigo1[*quantidade].x = *xzumbi;
@@ -105,6 +125,8 @@ void esqueleto(char **mundo,char **armazenamento, struct Inimigo inimigo2[],int 
     for(int i = 0; i<quantidadeSpawn;i++){
         *xesqueleto = rand() % TAM;
         *yesqueleto = rand() % TAM;
+        inimigo2[*quantidade].id = 2;
+        inimigo2[*quantidade].item = 2;
         inimigo2[*quantidade].vida = 30;
         inimigo2[*quantidade].ataque = 20;
         inimigo2[*quantidade].x = *xesqueleto;
@@ -118,7 +140,7 @@ void esqueleto(char **mundo,char **armazenamento, struct Inimigo inimigo2[],int 
         (*quantidade)++;
     }
 }
-int ataque(int vida, int ataque, struct Inimigo inimigo1[], int indice){
+int ataque(int vida, int ataque, struct Inimigo inimigo1[], int indice,struct SlotItem mochila[]){
     char comando;
     printf("Você está atacando >:D \n");
     printf("Vida = %d \n",vida);
@@ -135,19 +157,41 @@ int ataque(int vida, int ataque, struct Inimigo inimigo1[], int indice){
             return 1;
         }
         else if(inimigo1[indice].vida <= 0){
+            adicionarItem(inimigo1,mochila,indice);
             return 0;
         }
     }
 }
+
 void inventario(struct SlotItem mochila[]){
-    for(int i =0;i<15;i++){
-        mochila[i].id = -1;
-        mochila[i].quantidade = 0;
-    }
     printf("---Inventário---\n");
     for(int i=0;i<15;i++){
-        printf("%d = ? (Quantidade %d)\n",i,mochila[i].quantidade);
+        printf("%d = ",i);
+
+        switch(mochila[i].id){
+            case -1:
+                printf("Vazio");
+            break;
+
+            case 1:
+                printf("Madeira");
+            break;
+
+            case 2:
+                printf("Osso de esqueleto");
+            break;
+        
+            default:
+                printf("?");
+            break;
+        }
+
+        if(mochila[i].id != -1){
+            printf(" (Quantidade: %d)",mochila[i].quantidade);
+        }
+        printf("\n");
     }
+    printf("Pressione Enter para fechar \n");
 }
 void jogador(char **mundo,char **armazenamento,int *x,int *y){
     char jogador = 'P';
@@ -329,6 +373,11 @@ int main(){
     int vilasEncontradas = 0;
 
     struct SlotItem mochila[15];
+    for(int i =0;i<15;i++){
+        mochila[i].id = -1;
+        mochila[i].quantidade = 0;
+    }
+
     int vidaInicialJogador = 100;
     int ataqueInicialJogador = 15;
     int seed = 0;
@@ -381,7 +430,7 @@ int main(){
         for(int i = 0; i<quantidadeInimigos;i++){
             if(inimigo[i].estadoAtual && x == inimigo[i].x && y == inimigo[i].y){
                 system("cls");
-                if(ataque(vidaInicialJogador,ataqueInicialJogador,inimigo,i)){
+                if(ataque(vidaInicialJogador,ataqueInicialJogador,inimigo,i,mochila)){
                     printf("\nGame Over :<\n Reinicie o jogo! \n");
                     exit(0);
                 }
