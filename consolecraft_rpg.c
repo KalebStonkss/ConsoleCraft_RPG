@@ -80,8 +80,25 @@ void desenharUI(char **mundo){
     printf("Digite um movimento estilo WASD || Para sair do jogo, digite X \n");
 }
 
-void adicionarItem(struct Inimigo inimigo1[], struct SlotItem mochila[],int indice){
+void adicionarItemInimigo(struct Inimigo inimigo1[], struct SlotItem mochila[],int indice){
     int item_escolhido = inimigo1[indice].item;
+    for(int i=0;i<15;i++){
+        if(mochila[i].id == item_escolhido){
+            mochila[i].quantidade++;
+            return;
+        }
+    }
+    
+    for(int i=0;i<15;i++){
+        if(mochila[i].id == -1){         
+            mochila[i].id = item_escolhido;
+            mochila[i].quantidade = 1;
+            return;
+        }
+    }
+}
+void adicionarItemMundo(struct SlotItem mochila[], int id_item){
+    int item_escolhido = id_item;
     for(int i=0;i<15;i++){
         if(mochila[i].id == item_escolhido){
             mochila[i].quantidade++;
@@ -157,7 +174,7 @@ int ataque(int vida, int ataque, struct Inimigo inimigo1[], int indice,struct Sl
             return 1;
         }
         else if(inimigo1[indice].vida <= 0){
-            adicionarItem(inimigo1,mochila,indice);
+            adicionarItemInimigo(inimigo1,mochila,indice);
             return 0;
         }
     }
@@ -425,6 +442,10 @@ int main(){
             getchar();
             getchar();
             desenharUI(mundo);
+        }
+
+        if(armazenamento[x][y] == '.'){
+            adicionarItemMundo(mochila,1);
         }
         //Checagem da posição do jogador e do inimigo
         for(int i = 0; i<quantidadeInimigos;i++){
