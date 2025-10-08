@@ -16,5 +16,5 @@
   - P é o jogador, você :D
 ## Progresso atual do código
   - Criação do inventário
-  - Modo de ataque
+  - Aba de notificações
   - Geração de vilas
