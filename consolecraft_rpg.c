@@ -68,8 +68,16 @@ void criarMundo(int seed, char **mundo,char **armazenamento){
         }
     }
 }
-void desenharUI(char **mundo){
+void notificacaoUI(const char* mensagem){
     gotoxy(0,0);
+    printf("%-40s",mensagem);
+}
+void desenharUI(char **mundo,const char *mensagem){
+    notificacaoUI(mensagem);
+    printf("|");
+    gotoxy(0,1);
+    printf("________________________________________\n");
+    gotoxy(0,2);
     for(int i = 0;i<TAM;i++){
         for(int j=0;j<TAM;j++){
             printf("%c ",mundo[i][j]);
@@ -269,8 +277,7 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
            return 1;
            break;
         default:
-           system("cls");
-           printf("Movimento inválido, use WASD \n");
+           return 99;
     }
     return 0;
 }
@@ -418,6 +425,7 @@ int main(){
     jogador(mundo,armazenamento,&x,&y);
     zumbi(mundo,armazenamento,inimigo,&xzumbi,&yzumbi,&quantidadeInimigos,&x,&y);
     esqueleto(mundo,armazenamento,inimigo,&xesqueleto,&yesqueleto,&quantidadeInimigos,&x,&y);
+    printf("Mensagem do jogo                        |\n________________________________________\n");
     for(int i = 0;i<TAM;i++){
         for(int j=0;j<TAM;j++){
             printf("%c ",mundo[i][j]);
@@ -429,9 +437,13 @@ int main(){
     printf("Pressione qualquer tecla para continuar");
     getchar();
     system("cls");
+
+    char mensagemNotificacao[100] = "";
     while (1){
         //Geração do mundo, irá ser gerado enquanto o while não for 1
-        desenharUI(mundo);
+        desenharUI(mundo,mensagemNotificacao);
+        mensagemNotificacao[0] = '\0';
+
         int armazenarComando = movimentoJogador(mundo,armazenamento,'P',&x,&y,TAM);
         if(armazenarComando == 1){
             break;
@@ -441,11 +453,14 @@ int main(){
             inventario(mochila);
             getchar();
             getchar();
-            desenharUI(mundo);
+            desenharUI(mundo,mensagemNotificacao);
         }
-
+        if(armazenarComando == 99){
+            strcpy(mensagemNotificacao,"Movimento inválido, use WASD \n");
+        }
         if(armazenamento[x][y] == '.'){
             adicionarItemMundo(mochila,1);
+            strcpy(mensagemNotificacao, "Você coletou +1 madeira!");
         }
         //Checagem da posição do jogador e do inimigo
         for(int i = 0; i<quantidadeInimigos;i++){
@@ -462,7 +477,7 @@ int main(){
                     printf("Você venceu o inimigo!\n Pressione Enter para continuar! \n");
                     getchar();
                     getchar();
-                    desenharUI(mundo);
+                    desenharUI(mundo,mensagemNotificacao);
                 }
             }
         }
