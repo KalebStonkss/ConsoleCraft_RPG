@@ -68,6 +68,9 @@ void criarMundo(int seed, char **mundo,char **armazenamento){
         }
     }
 }
+void ajuda(){
+    printf("I -> Inventário\nC -> Crafting\n");
+}
 void notificacaoUI(const char* mensagem){
     gotoxy(0,0);
     printf("%-40s",mensagem);
@@ -188,6 +191,9 @@ int ataque(int vida, int ataque, struct Inimigo inimigo1[], int indice,struct Sl
     }
 }
 
+void crafting(){
+    printf("Você está no sistema de crafting");
+}
 void inventario(struct SlotItem mochila[]){
     printf("---Inventário---\n");
     for(int i=0;i<15;i++){
@@ -271,6 +277,13 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
         case 'i':
         case 'I':
            return 6;
+           break;
+        case 'c':
+        case 'C':
+           return 7;
+           break;
+        case '?':
+           return 98;
            break;
         case 'x':
         case 'X':
@@ -434,7 +447,9 @@ int main(){
     }
     printf("Elementos do jogo: \n");
     printf("Montanha = ^ \n Água = ~ \n Terra = . \n Jogador = P \n");
-    printf("Pressione qualquer tecla para continuar");
+    printf("______________________________________________\n");
+    printf("WASD para movimento, X para sair, para outros comandos digite ? \n\n");
+    printf("Pressione qualquer tecla para continuar: ");
     getchar();
     system("cls");
 
@@ -443,6 +458,7 @@ int main(){
         //Geração do mundo, irá ser gerado enquanto o while não for 1
         desenharUI(mundo,mensagemNotificacao);
         mensagemNotificacao[0] = '\0';
+        int chance = rand() % 100;
 
         int armazenarComando = movimentoJogador(mundo,armazenamento,'P',&x,&y,TAM);
         if(armazenarComando == 1){
@@ -455,10 +471,22 @@ int main(){
             getchar();
             desenharUI(mundo,mensagemNotificacao);
         }
+        if(armazenarComando == 7){
+            system("cls");
+            crafting();
+            getchar();
+            getchar();
+        }
+        if(armazenarComando == 98){
+            system("cls");
+            ajuda();
+            getchar();
+            getchar();
+        }
         if(armazenarComando == 99){
             strcpy(mensagemNotificacao,"Movimento inválido, use WASD \n");
         }
-        if(armazenamento[x][y] == '.'){
+        if(armazenamento[x][y] == '.' && chance < 25){
             adicionarItemMundo(mochila,1);
             strcpy(mensagemNotificacao, "Você coletou +1 madeira!");
         }
