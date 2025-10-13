@@ -17,4 +17,4 @@
 ## Progresso atual do código
   - Criação do inventário
   - Aba de notificações
-  - Geração de vilas
+  - Protótipo básico do sistema de crafting
