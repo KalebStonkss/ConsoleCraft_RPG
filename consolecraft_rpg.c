@@ -6,6 +6,18 @@
 #define TAM_VILA 10
 #define MAX_VILAS_ENCONTRADAS 20
 //P.S, quando for usar os emojis, usa esses (tem a mesma quantidade de bytes, se preferir mude para outros emojis com os mesmos bytes): 🤠💀🗻💧🟩
+
+struct Receita{
+    char itemDesejado;
+    char item_um;
+    char item_dois;
+    char item_tres;
+    int quantidade_um;
+    int quantidade_dois;
+    int quantidade_tres;
+    int seraCraftado;
+};
+
 struct Inimigo{
     int id;
     int ataque;
@@ -191,9 +203,6 @@ int ataque(int vida, int ataque, struct Inimigo inimigo1[], int indice,struct Sl
     }
 }
 
-void crafting(){
-    printf("Você está no sistema de crafting");
-}
 void inventario(struct SlotItem mochila[]){
     printf("---Inventário---\n");
     for(int i=0;i<15;i++){
@@ -224,6 +233,18 @@ void inventario(struct SlotItem mochila[]){
     }
     printf("Pressione Enter para fechar \n");
 }
+
+void crafting(struct SlotItem mochila[], struct Receita receitas[],int totalReceitas){
+    printf("Você está no sistema de crafting\n");
+    inventario(mochila);
+    printf("\n");
+    printf(" _______________________\n| Sistema de crafting ⛏ |\n|_______________________|\n");
+    for(int i = 0;i < totalReceitas;i++){
+        printf("[%d] %s (Requisitos: %dx %s | %dx %s | %dx %s)\n", i, receitas[i].itemDesejado, receitas[i].quantidade_um, receitas[i].item_um, receitas[i].quantidade_dois, receitas[i].item_dois, receitas[i].quantidade_tres, receitas[i].item_tres);
+    }
+    printf("_______________________\n");
+}
+
 void jogador(char **mundo,char **armazenamento,int *x,int *y){
     char jogador = 'P';
     char *pjogador = &jogador;
@@ -403,6 +424,9 @@ int main(){
     system("cls");
     SetConsoleOutputCP(CP_UTF8);
     hideCursor();
+    struct Receita receitas[100];
+    int quantidadeReceitas = 0;
+
     struct Inimigo inimigo[20];
     int quantidadeInimigos = 0;
 
@@ -473,7 +497,7 @@ int main(){
         }
         if(armazenarComando == 7){
             system("cls");
-            crafting();
+            crafting(mochila,receitas,quantidadeReceitas);
             getchar();
             getchar();
         }
