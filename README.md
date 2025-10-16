@@ -16,5 +16,5 @@
   - P é o jogador, você :D
 ## Progresso atual do código
   - Criação do inventário
-  - Aba de notificações
-  - Protótipo básico do sistema de crafting
+  - Melhoria visual no jogo com emojis
+  - Protótipo básico do sistema de crafting(está com bugs, precisará de reparos)
