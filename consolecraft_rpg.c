@@ -54,7 +54,33 @@ void gotoxy(int x, int y){
     SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 }
 
-
+void imprimirComEmojis(char caractere){
+    switch(caractere){
+        case 'P':
+            printf("%-4s", "🤠");
+            break;
+        case '.':
+            printf("%-4s", "🟩");
+            break;
+        case '~':
+            printf("%-4s", "💧");
+            break;
+        case '^':
+            printf("%-4s", "🗻");
+            break;
+        case 'Z':
+        case 'E':
+            printf("%-4s", "💀");
+            break;
+        case 'V':
+        case 'H':
+            printf("%-4s", "🏠");
+            break;
+        default:
+            printf("%-4c", caractere);
+            break;
+    }
+}
 //função para criar o mundo inicial
 void criarMundo(int seed, char **mundo,char **armazenamento){
     srand(time(NULL));
@@ -95,7 +121,7 @@ void desenharUI(char **mundo,const char *mensagem){
     gotoxy(0,2);
     for(int i = 0;i<TAM;i++){
         for(int j=0;j<TAM;j++){
-            printf("%c ",mundo[i][j]);
+            imprimirComEmojis(mundo[i][j]);
         }
         printf("\n");
     }
@@ -234,13 +260,65 @@ void inventario(struct SlotItem mochila[]){
     printf("Pressione Enter para fechar \n");
 }
 
+const char* bibliotecaIdReceitas(int id){
+    switch(id){
+        case -1: return "Vazio";
+        case 1: return "Madeira";
+        case 2: return "Osso de esqueleto";
+        case 3: return "Picareta";
+    }
+}
+void bancoReceitas(struct Receita receitas[], int *quantidadeReceitas){
+    int i = 0;
+    receitas[i].itemDesejado = 3;
+    receitas[i].quantidade_um = 4;
+    receitas[i].item_um = 1;
+    i++;
+    *quantidadeReceitas = i;
+}
+
+int verificarCrafting(struct Receita receitas[],struct SlotItem mochila[]){
+    int daCerto = 0;
+    for(int i = 0;i<15;i++){
+        char itemNecessarioUm = receitas[i].item_um;
+        char itemNecessarioDois = receitas[i].item_dois;
+        char itemNecessarioTres = receitas[i].item_tres;
+        int quantidadeNecessariaUm = receitas[i].quantidade_um;
+        int quantidadeNecessariaDois = receitas[i].quantidade_dois;
+        int quantidadeNecessariaTres = receitas[i].quantidade_tres;
+
+        if(mochila[i].id == itemNecessarioUm && mochila[i].quantidade >= quantidadeNecessariaUm){
+            for(int j = 0; j<15;j++){
+                if(mochila[j].id == itemNecessarioDois && mochila[j].quantidade >= quantidadeNecessariaDois){
+                    for(int k = 0;k<15;k++){
+                        if(mochila[k].id == itemNecessarioTres && mochila[k].quantidade >= quantidadeNecessariaTres){
+                            daCerto = 1;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if(!daCerto){
+        return 0;
+    }
+    return 1;
+}
 void crafting(struct SlotItem mochila[], struct Receita receitas[],int totalReceitas){
     printf("Você está no sistema de crafting\n");
     inventario(mochila);
     printf("\n");
     printf(" _______________________\n| Sistema de crafting ⛏ |\n|_______________________|\n");
     for(int i = 0;i < totalReceitas;i++){
-        printf("[%d] %s (Requisitos: %dx %s | %dx %s | %dx %s)\n", i, receitas[i].itemDesejado, receitas[i].quantidade_um, receitas[i].item_um, receitas[i].quantidade_dois, receitas[i].item_dois, receitas[i].quantidade_tres, receitas[i].item_tres);
+        const char *nomeDesejado = bibliotecaIdReceitas(receitas[i].itemDesejado);
+        const char *nomeUm = bibliotecaIdReceitas(receitas[i].item_um);
+        const char *nomeDois = bibliotecaIdReceitas(receitas[i].item_dois);
+        const char *nomeTres = bibliotecaIdReceitas(receitas[i].item_tres);
+        printf("[%d] %s (Requisitos: %dx %s | %dx %s | %dx %s)", i, nomeDesejado, receitas[i].quantidade_um, nomeUm, receitas[i].quantidade_dois, nomeDois, receitas[i].quantidade_tres, nomeTres);
+    }
+    if(verificarCrafting(receitas,mochila)){
+        printf("- Fabricável ✅\n");
     }
     printf("_______________________\n");
 }
@@ -395,7 +473,7 @@ void vila(int comando,int jogador_x, int jogador_y, struct Vila vilas[],int *ind
 
         for(int i = 0; i < TAM_VILA;i++){
             for(int j = 0;j< TAM_VILA;j++){
-                printf("%c ",coordenadasVila[i][j]);
+                imprimirComEmojis(coordenadasVila[i][j]);
             }
             printf(" \n");
         }
@@ -465,7 +543,7 @@ int main(){
     printf("Mensagem do jogo                        |\n________________________________________\n");
     for(int i = 0;i<TAM;i++){
         for(int j=0;j<TAM;j++){
-            printf("%c ",mundo[i][j]);
+            imprimirComEmojis(mundo[i][j]);
         }
         printf("\n");
     }
