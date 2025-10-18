@@ -9,12 +9,13 @@
 
 struct Receita{
     char itemDesejado;
-    char item_um;
-    char item_dois;
-    char item_tres;
+    char id_um;
+    char id_dois;
+    char id_tres;
     int quantidade_um;
     int quantidade_dois;
     int quantidade_tres;
+    int totalItems;
     int seraCraftado;
 };
 
@@ -272,38 +273,45 @@ void bancoReceitas(struct Receita receitas[], int *quantidadeReceitas){
     int i = 0;
     receitas[i].itemDesejado = 3;
     receitas[i].quantidade_um = 4;
-    receitas[i].item_um = 1;
+    receitas[i].id_um = 1;
+    receitas[i].id_dois = 0;
+    receitas[i].quantidade_dois = 0;
+    receitas[i].id_tres = 0;
+    receitas[i].quantidade_tres = 0;
     i++;
     *quantidadeReceitas = i;
 }
 
-int verificarCrafting(struct Receita receitas[],struct SlotItem mochila[]){
-    int daCerto = 0;
-    for(int i = 0;i<15;i++){
-        char itemNecessarioUm = receitas[i].item_um;
-        char itemNecessarioDois = receitas[i].item_dois;
-        char itemNecessarioTres = receitas[i].item_tres;
-        int quantidadeNecessariaUm = receitas[i].quantidade_um;
-        int quantidadeNecessariaDois = receitas[i].quantidade_dois;
-        int quantidadeNecessariaTres = receitas[i].quantidade_tres;
+int verificarCrafting(struct Receita receitas,struct SlotItem mochila[]){
+    int achouItemUm = 0;
+    int achouItemDois = 0;
+    int achouItemTres = 0;
 
-        if(mochila[i].id == itemNecessarioUm && mochila[i].quantidade >= quantidadeNecessariaUm){
-            for(int j = 0; j<15;j++){
-                if(mochila[j].id == itemNecessarioDois && mochila[j].quantidade >= quantidadeNecessariaDois){
-                    for(int k = 0;k<15;k++){
-                        if(mochila[k].id == itemNecessarioTres && mochila[k].quantidade >= quantidadeNecessariaTres){
-                            daCerto = 1;
-                            break;
-                        }
-                    }
-                }
-            }
+
+    if(receitas.id_um <=0){
+        achouItemUm = 1;
+    }
+    if(receitas.id_dois <=0){
+        achouItemDois = 1;
+    }
+    if(receitas.id_tres <=0){
+        achouItemTres = 1;
+    }
+    for(int i = 0;i<15;i++){
+        if(achouItemUm == 0 && mochila[i].id == receitas.id_um && mochila[i].quantidade >= receitas.quantidade_um){
+            achouItemUm = 1;
+        }
+        if(achouItemDois == 0 && mochila[i].id == receitas.id_dois && mochila[i].quantidade >= receitas.quantidade_dois){
+            achouItemDois = 1;
+        }
+        if(achouItemTres == 0 && mochila[i].id == receitas.id_tres && mochila[i].quantidade >= receitas.quantidade_tres){
+            achouItemTres = 1;
         }
     }
-    if(!daCerto){
-        return 0;
+    if(achouItemUm && achouItemDois && achouItemTres){
+        return 1;
     }
-    return 1;
+    return 0;
 }
 void crafting(struct SlotItem mochila[], struct Receita receitas[],int totalReceitas){
     printf("Você está no sistema de crafting\n");
@@ -312,13 +320,22 @@ void crafting(struct SlotItem mochila[], struct Receita receitas[],int totalRece
     printf(" _______________________\n| Sistema de crafting ⛏ |\n|_______________________|\n");
     for(int i = 0;i < totalReceitas;i++){
         const char *nomeDesejado = bibliotecaIdReceitas(receitas[i].itemDesejado);
-        const char *nomeUm = bibliotecaIdReceitas(receitas[i].item_um);
-        const char *nomeDois = bibliotecaIdReceitas(receitas[i].item_dois);
-        const char *nomeTres = bibliotecaIdReceitas(receitas[i].item_tres);
-        printf("[%d] %s (Requisitos: %dx %s | %dx %s | %dx %s)", i, nomeDesejado, receitas[i].quantidade_um, nomeUm, receitas[i].quantidade_dois, nomeDois, receitas[i].quantidade_tres, nomeTres);
-    }
-    if(verificarCrafting(receitas,mochila)){
-        printf("- Fabricável ✅\n");
+        printf("[%d] %s (Requisitos: ",i,nomeDesejado);
+        if(receitas[i].id_um > 0){
+            printf("%dx %s",receitas[i].quantidade_um,bibliotecaIdReceitas(receitas[i].id_um));
+        }
+        if(receitas[i].id_dois > 0){
+            printf("| %dx %s",receitas[i].quantidade_dois,bibliotecaIdReceitas(receitas[i].id_dois));
+        }
+        if(receitas[i].id_tres > 0){
+            printf("| %dx %s",receitas[i].quantidade_tres,bibliotecaIdReceitas(receitas[i].id_tres));
+        }
+        if(verificarCrafting(receitas[i],mochila)){
+            printf("- Fabricável ✅)\n");
+        }
+        else{
+            printf("- Não Fabricável)\n");
+        }
     }
     printf("_______________________\n");
 }
@@ -504,6 +521,7 @@ int main(){
     hideCursor();
     struct Receita receitas[100];
     int quantidadeReceitas = 0;
+    bancoReceitas(receitas,&quantidadeReceitas);
 
     struct Inimigo inimigo[20];
     int quantidadeInimigos = 0;
@@ -578,6 +596,7 @@ int main(){
             crafting(mochila,receitas,quantidadeReceitas);
             getchar();
             getchar();
+            system("cls");
         }
         if(armazenarComando == 98){
             system("cls");
