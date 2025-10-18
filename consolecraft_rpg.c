@@ -130,6 +130,22 @@ void desenharUI(char **mundo,const char *mensagem){
     printf("Digite um movimento estilo WASD || Para sair do jogo, digite X \n");
 }
 
+void adicionarItemCrafting(struct SlotItem mochila[],int indice){
+    int item_escolhido = indice;
+    for(int i=0;i<15;i++){
+        if(mochila[i].id == item_escolhido){
+            mochila[i].quantidade++;
+            return;
+        }
+    }
+    for(int i=0;i<15;i++){
+        if(mochila[i].id == -1){
+            mochila[i].id = item_escolhido;
+            mochila[i].quantidade = 1;
+            return;
+        }
+    }
+}
 void adicionarItemInimigo(struct Inimigo inimigo1[], struct SlotItem mochila[],int indice){
     int item_escolhido = inimigo1[indice].item;
     for(int i=0;i<15;i++){
@@ -230,28 +246,28 @@ int ataque(int vida, int ataque, struct Inimigo inimigo1[], int indice,struct Sl
     }
 }
 
+
+const char* bibliotecaIDs(int id){
+    switch(id){
+        //Vazio
+        case -1: return "Vazio";
+
+        //ID(1-100) -> Elementos Básicos
+        case 1: return "Madeira";
+        case 2: return "Osso de esqueleto";
+
+        //ID(101-500) -> Elementos Compostos (precisam de crafting para existir)
+        case 101: return "Picareta";
+
+        //Caso desconhecido/genérico
+        default: return "?";
+    }
+}
 void inventario(struct SlotItem mochila[]){
     printf("---Inventário---\n");
     for(int i=0;i<15;i++){
         printf("%d = ",i);
-
-        switch(mochila[i].id){
-            case -1:
-                printf("Vazio");
-            break;
-
-            case 1:
-                printf("Madeira");
-            break;
-
-            case 2:
-                printf("Osso de esqueleto");
-            break;
-        
-            default:
-                printf("?");
-            break;
-        }
+        printf("%s",bibliotecaIDs(mochila[i].id));
 
         if(mochila[i].id != -1){
             printf(" (Quantidade: %d)",mochila[i].quantidade);
@@ -261,17 +277,9 @@ void inventario(struct SlotItem mochila[]){
     printf("Pressione Enter para fechar \n");
 }
 
-const char* bibliotecaIdReceitas(int id){
-    switch(id){
-        case -1: return "Vazio";
-        case 1: return "Madeira";
-        case 2: return "Osso de esqueleto";
-        case 3: return "Picareta";
-    }
-}
 void bancoReceitas(struct Receita receitas[], int *quantidadeReceitas){
     int i = 0;
-    receitas[i].itemDesejado = 3;
+    receitas[i].itemDesejado = 101;
     receitas[i].quantidade_um = 4;
     receitas[i].id_um = 1;
     receitas[i].id_dois = 0;
@@ -314,30 +322,48 @@ int verificarCrafting(struct Receita receitas,struct SlotItem mochila[]){
     return 0;
 }
 void crafting(struct SlotItem mochila[], struct Receita receitas[],int totalReceitas){
+    int id_escolhido;
+    int podeFabricar[100] = {0};
     printf("Você está no sistema de crafting\n");
     inventario(mochila);
     printf("\n");
     printf(" _______________________\n| Sistema de crafting ⛏ |\n|_______________________|\n");
     for(int i = 0;i < totalReceitas;i++){
-        const char *nomeDesejado = bibliotecaIdReceitas(receitas[i].itemDesejado);
+        const char *nomeDesejado = bibliotecaIDs(receitas[i].itemDesejado);
         printf("[%d] %s (Requisitos: ",i,nomeDesejado);
         if(receitas[i].id_um > 0){
-            printf("%dx %s",receitas[i].quantidade_um,bibliotecaIdReceitas(receitas[i].id_um));
+            printf("%dx %s",receitas[i].quantidade_um,bibliotecaIDs(receitas[i].id_um));
         }
         if(receitas[i].id_dois > 0){
-            printf("| %dx %s",receitas[i].quantidade_dois,bibliotecaIdReceitas(receitas[i].id_dois));
+            printf("| %dx %s",receitas[i].quantidade_dois,bibliotecaIDs(receitas[i].id_dois));
         }
         if(receitas[i].id_tres > 0){
-            printf("| %dx %s",receitas[i].quantidade_tres,bibliotecaIdReceitas(receitas[i].id_tres));
+            printf("| %dx %s",receitas[i].quantidade_tres,bibliotecaIDs(receitas[i].id_tres));
         }
         if(verificarCrafting(receitas[i],mochila)){
             printf("- Fabricável ✅)\n");
+            podeFabricar[i] = 1;
         }
         else{
             printf("- Não Fabricável)\n");
         }
-    }
+    } 
     printf("_______________________\n");
+    puts("Digite o número da receita que deseja craftar: ");
+    scanf("%d",&id_escolhido);
+    if(id_escolhido < 0 || id_escolhido >= totalReceitas){
+        printf("Sua escolha não está na lista de receitas \n");
+        return;
+    }
+    for(int i = 0;i < totalReceitas;i++){
+        if(id_escolhido == i && podeFabricar[id_escolhido] == 1){
+            adicionarItemCrafting(mochila,receitas[id_escolhido].itemDesejado);
+            printf("Item adicionado com sucesso! \n");
+        }
+        else{
+            printf("Você não pode fabricar esse item ainda");
+        }
+    }
 }
 
 void jogador(char **mundo,char **armazenamento,int *x,int *y){
