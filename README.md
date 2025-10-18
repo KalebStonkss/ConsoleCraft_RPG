@@ -17,4 +17,4 @@
 ## Progresso atual do código
   - Criação do inventário
   - Melhoria visual no jogo com emojis
-  - Protótipo básico do sistema de crafting(está com bugs, precisará de reparos)
+  - Protótipo básico do sistema de crafting
