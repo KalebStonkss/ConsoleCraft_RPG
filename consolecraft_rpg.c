@@ -1,7 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <windows.h>
+#include <string.h>
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <unistd.h>
+    #include <locale.h>
+#endif
 #define TAM 20
 #define TAM_VILA 10
 #define MAX_VILAS_ENCONTRADAS 20
@@ -40,19 +46,42 @@ struct SlotItem{
     int quantidade;
 };
 
+void limparTela(){
+    #ifdef _WIN32
+        system("cls");
+    #else
+        system("clear");
+    #endif
+}
+
+void dormir(int ms){
+    #ifdef _WIN32
+        Sleep(ms);
+    #else
+        usleep(ms * 1000);
+    #endif
+}
 //função estética para esconder o cursor que aparece toda vez que o mapa é recarregado
 void hideCursor() {
-    HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-    CONSOLE_CURSOR_INFO info;
-    info.dwSize = 100;
-    info.bVisible = FALSE;
-    SetConsoleCursorInfo(consoleHandle, &info);
+    #ifdef _WIN32
+        HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+        CONSOLE_CURSOR_INFO info;
+        info.dwSize = 100;
+        info.bVisible = FALSE;
+        SetConsoleCursorInfo(consoleHandle, &info);
+    #else
+        printf("\033[?25l");
+    #endif
 }
 void gotoxy(int x, int y){
-    COORD coord;
-    coord.X = x;
-    coord.Y = y;
-    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+    #ifdef _WIN32
+        COORD coord;
+        coord.X = x;
+        coord.Y = y;
+        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+    #else
+        printf("\033[%d;%dH",y+1,x+1);
+    #endif
 }
 
 void imprimirComEmojis(char caractere){
@@ -108,13 +137,18 @@ void criarMundo(int seed, char **mundo,char **armazenamento){
     }
 }
 void ajuda(){
-    printf("I -> Inventário\nC -> Crafting\n");
+    printf("I -> Inventário\nC -> Crafting\nM -> Minerar");
 }
 void notificacaoUI(const char* mensagem){
     gotoxy(0,0);
     printf("%-40s",mensagem);
 }
 void desenharUI(char **mundo,const char *mensagem){
+    #ifdef _WIN32
+        
+    #else
+        limparTela();
+    #endif
     notificacaoUI(mensagem);
     printf("|");
     gotoxy(0,1);
@@ -246,7 +280,9 @@ int ataque(int vida, int ataque, struct Inimigo inimigo1[], int indice,struct Sl
     }
 }
 
-
+void minerar(){
+    printf("Mecânica em progresso :)");
+}
 const char* bibliotecaIDs(int id){
     switch(id){
         //Vazio
@@ -321,6 +357,45 @@ int verificarCrafting(struct Receita receitas,struct SlotItem mochila[]){
     }
     return 0;
 }
+
+void removerItemsCrafting(struct SlotItem mochila[],struct Receita receita_escolhida){
+    if(receita_escolhida.id_um > 0){
+        for(int i = 0;i<15;i++){
+            if(mochila[i].id == receita_escolhida.id_um){
+                mochila[i].quantidade = mochila[i].quantidade - receita_escolhida.quantidade_um;
+                if(mochila[i].quantidade <= 0){
+                    mochila[i].id = -1;
+                    mochila[i].quantidade = 0;
+                }
+                break;
+            }
+        }
+    }
+    else if(receita_escolhida.id_dois > 0){
+        for(int i = 0;i<15;i++){
+            if(mochila[i].id == receita_escolhida.id_dois){
+                mochila[i].quantidade = mochila[i].quantidade - receita_escolhida.quantidade_dois;
+                if(mochila[i].quantidade <= 0){
+                    mochila[i].id = -1;
+                    mochila[i].quantidade = 0;
+                }
+                break;
+            }
+        }
+    }
+    else if(receita_escolhida.id_tres > 0){
+        for(int i = 0;i<15;i++){
+            if(mochila[i].id == receita_escolhida.id_tres){
+                mochila[i].quantidade = mochila[i].quantidade - receita_escolhida.quantidade_tres;
+                if(mochila[i].quantidade <= 0){
+                    mochila[i].id = -1;
+                    mochila[i].quantidade = 0;
+                }
+                break;
+            }
+        }
+    }
+}
 void crafting(struct SlotItem mochila[], struct Receita receitas[],int totalReceitas){
     int id_escolhido;
     int podeFabricar[100] = {0};
@@ -358,6 +433,7 @@ void crafting(struct SlotItem mochila[], struct Receita receitas[],int totalRece
     for(int i = 0;i < totalReceitas;i++){
         if(id_escolhido == i && podeFabricar[id_escolhido] == 1){
             adicionarItemCrafting(mochila,receitas[id_escolhido].itemDesejado);
+            removerItemsCrafting(mochila,receitas[id_escolhido]);
             printf("Item adicionado com sucesso! \n");
         }
         else{
@@ -423,6 +499,10 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
         case 'c':
         case 'C':
            return 7;
+           break;
+        case 'm':
+        case 'M':
+           return 8;
            break;
         case '?':
            return 98;
@@ -512,7 +592,7 @@ void vila(int comando,int jogador_x, int jogador_y, struct Vila vilas[],int *ind
     }
     coordenadasVila[x][y] = 'P';
     while(1){
-        system("cls");
+        limparTela();
 
         for(int i = 0; i < TAM_VILA;i++){
             for(int j = 0;j< TAM_VILA;j++){
@@ -526,9 +606,9 @@ void vila(int comando,int jogador_x, int jogador_y, struct Vila vilas[],int *ind
         movimentoJogador(coordenadasVila,armazenamentoVila,'P',&x,&y,TAM_VILA);
         if(x_ant == x && y_ant == y){
             if(x == 0 || x == TAM_VILA-1 || y == 0 || y == TAM_VILA-1){
-                system("cls");
+                limparTela();
                 printf("Você está saindo da vila");
-                Sleep(2000);
+                dormir(2000);
                 break;
             }
         }
@@ -542,8 +622,12 @@ void vila(int comando,int jogador_x, int jogador_y, struct Vila vilas[],int *ind
     free(armazenamentoVila);
 }
 int main(){
-    system("cls");
-    SetConsoleOutputCP(CP_UTF8);
+    limparTela();
+    #ifdef _WIN32
+        SetConsoleOutputCP(CP_UTF8);
+    #else
+        setlocale(LC_ALL,"");
+    #endif
     hideCursor();
     struct Receita receitas[100];
     int quantidadeReceitas = 0;
@@ -597,7 +681,7 @@ int main(){
     printf("WASD para movimento, X para sair, para outros comandos digite ? \n\n");
     printf("Pressione qualquer tecla para continuar: ");
     getchar();
-    system("cls");
+    limparTela();
 
     char mensagemNotificacao[100] = "";
     while (1){
@@ -611,21 +695,28 @@ int main(){
             break;
         }
         if(armazenarComando == 6){
-            system("cls");
+            limparTela();
             inventario(mochila);
             getchar();
             getchar();
             desenharUI(mundo,mensagemNotificacao);
         }
         if(armazenarComando == 7){
-            system("cls");
+            limparTela();
             crafting(mochila,receitas,quantidadeReceitas);
             getchar();
             getchar();
-            system("cls");
+            limparTela();
+        }
+        if(armazenarComando == 8){
+            limparTela();
+            minerar();
+            getchar();
+            getchar();
+            limparTela();
         }
         if(armazenarComando == 98){
-            system("cls");
+            limparTela();
             ajuda();
             getchar();
             getchar();
@@ -640,14 +731,14 @@ int main(){
         //Checagem da posição do jogador e do inimigo
         for(int i = 0; i<quantidadeInimigos;i++){
             if(inimigo[i].estadoAtual && x == inimigo[i].x && y == inimigo[i].y){
-                system("cls");
+                limparTela();
                 if(ataque(vidaInicialJogador,ataqueInicialJogador,inimigo,i,mochila)){
                     printf("\nGame Over :<\n Reinicie o jogo! \n");
                     exit(0);
                 }
                 else{
                     inimigo[i].estadoAtual = 0;
-                    system("cls");
+                    limparTela();
                     printf("--------------------------\n");
                     printf("Você venceu o inimigo!\n Pressione Enter para continuar! \n");
                     getchar();
