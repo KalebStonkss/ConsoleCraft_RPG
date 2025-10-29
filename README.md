@@ -8,13 +8,19 @@
   - **Requisitos Mínimos**: GCC instalado no computador (por meio do MinGW ou WSL)
   - No prompt de comando, digite "chcp 65001"(sem as aspas) para o Windows detectar acentuações corretamente
   - No Prompt de Comando, digite "gcc -o consolecraft.exe consolecraft_rpg.c"(sem as aspas), dê enter
-  - Depois, digite "consolecraft.exe"(sem as aspas) e dê enter para o jogo começar
+  - Depois, digite "./consolecraft.exe"(sem as aspas) e dê enter para o jogo começar
+### Linux
+  - **Requisitos Mínimos**: GCC instalado no computador
+  - No Terminal, digite "gcc -o consolecraft consolecraft_rpg.c"(sem as aspas), dê enter
+  - Depois, digite "./consolecraft"(sem as aspas) e dê enter para o jogo começar
 ## Elementos do Jogo
-  -  **^**  significa montanha (⛰)
-  -  **~**  significa água (💧)
-  -  &nbsp;**.**&nbsp;  significa terra (🌳)
-  - P é o jogador, você :D
+  -  ⛰ significa montanha
+  -  💧 significa água
+  -  🟩 significa terra
+  - 🏠 significa uma vila/casa
+  - 🤠 é o jogador, você :D
 ## Progresso atual do código
+  - Compatibilidade com Linux 🎉
   - Criação do inventário
   - Melhoria visual no jogo com emojis
-  - Protótipo básico do sistema de crafting
+  - Sistema de crafting básico completo
