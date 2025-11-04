@@ -2,15 +2,21 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <ctype.h>
 #ifdef _WIN32
     #include <windows.h>
 #else
     #include <unistd.h>
     #include <locale.h>
 #endif
-#define TAM 20
+#define TAM 30
+
 #define TAM_VILA 10
 #define MAX_VILAS_ENCONTRADAS 20
+
+#define MAX_MENSAGENS 20
+#define MAX_TAM_MENSAGENS 80
+
 //P.S, quando for usar os emojis, usa esses (tem a mesma quantidade de bytes, se preferir mude para outros emojis com os mesmos bytes): 🤠💀🗻💧🟩
 
 struct Receita{
@@ -139,20 +145,27 @@ void criarMundo(int seed, char **mundo,char **armazenamento){
 void ajuda(){
     printf("I -> Inventário\nC -> Crafting\nM -> Minerar");
 }
-void notificacaoUI(const char* mensagem){
+void notificacaoUI(const char* mensagem,int novasMensagens){
     gotoxy(0,0);
-    printf("%-40s",mensagem);
+    char buffer[MAX_TAM_MENSAGENS+50];
+    if(novasMensagens > 1){
+        sprintf(buffer,"[...] %s (Digite L para ver mensagens antigas)",mensagem);
+    }
+    else{
+        strcpy(buffer,mensagem);
+    }
+    printf("%-60s",buffer);
 }
-void desenharUI(char **mundo,const char *mensagem){
+void desenharUI(char **mundo,const char log[][MAX_TAM_MENSAGENS],int novasMensagens){
     #ifdef _WIN32
         
     #else
         limparTela();
     #endif
-    notificacaoUI(mensagem);
+    notificacaoUI(log[MAX_MENSAGENS-1],novasMensagens);
     printf("|");
     gotoxy(0,1);
-    printf("________________________________________\n");
+    printf("____________________________________________________________\n");
     gotoxy(0,2);
     for(int i = 0;i<TAM;i++){
         for(int j=0;j<TAM;j++){
@@ -162,6 +175,22 @@ void desenharUI(char **mundo,const char *mensagem){
     }
     printf("\n");
     printf("Digite um movimento estilo WASD || Para sair do jogo, digite X \n");
+}
+void adicionarLog(char log[][MAX_TAM_MENSAGENS], const char* novaMensagem,int *cont){
+    for(int i = 0;i<MAX_MENSAGENS-1;i++){
+        strcpy(log[i],log[i+1]);
+    }
+    strcpy(log[MAX_MENSAGENS-1],novaMensagem);
+    (*cont)++;
+}
+void exibirLog(char log[][MAX_TAM_MENSAGENS]){
+    printf("-- Caixa de Correio --\n");
+    printf("______________________\n\n");
+    for(int i = 0;i< MAX_MENSAGENS;i++){
+        if(log[i][0] != '\0'){
+            printf("%s\n",log[i]);
+        }
+    }
 }
 
 void adicionarItemCrafting(struct SlotItem mochila[],int indice){
@@ -453,10 +482,9 @@ void jogador(char **mundo,char **armazenamento,int *x,int *y){
 }
 int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *y,int tamanho){
     char movimento;
-    char *wasd = &movimento;
-    scanf(" %c",wasd);
-    switch(*wasd){
-        case 'w':
+    scanf(" %c",&movimento);
+    movimento = toupper(movimento);
+    switch(movimento){
         case 'W':
            if (*x > 0){
             mundo[*x][*y] = armazenamento[*x][*y];
@@ -465,7 +493,6 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
             return 2;
            }
            break;
-        case 'a':
         case 'A':
            if (*y > 0){
             mundo[*x][*y] = armazenamento[*x][*y];
@@ -474,7 +501,6 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
             return 3;
            }
            break;
-        case 's':
         case 'S':
             if (*x < tamanho-1){
              mundo[*x][*y] = armazenamento[*x][*y];
@@ -483,7 +509,6 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
              return 4;
             }
             break;
-        case 'd':
         case 'D':
            if (*y < tamanho-1){
             mundo[*x][*y] = armazenamento[*x][*y];
@@ -492,22 +517,21 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
             return 5;
            }
            break;
-        case 'i':
         case 'I':
            return 6;
            break;
-        case 'c':
         case 'C':
            return 7;
            break;
-        case 'm':
         case 'M':
            return 8;
+           break;
+        case 'L':
+           return 9;
            break;
         case '?':
            return 98;
            break;
-        case 'x':
         case 'X':
            return 1;
            break;
@@ -645,6 +669,11 @@ int main(){
         mochila[i].quantidade = 0;
     }
 
+    char logMensagens[MAX_MENSAGENS][MAX_TAM_MENSAGENS];
+    for(int i = 0;i< MAX_MENSAGENS;i++){
+        logMensagens[i][0] = '\0';
+    }
+
     int vidaInicialJogador = 100;
     int ataqueInicialJogador = 15;
     int seed = 0;
@@ -668,7 +697,7 @@ int main(){
     jogador(mundo,armazenamento,&x,&y);
     zumbi(mundo,armazenamento,inimigo,&xzumbi,&yzumbi,&quantidadeInimigos,&x,&y);
     esqueleto(mundo,armazenamento,inimigo,&xesqueleto,&yesqueleto,&quantidadeInimigos,&x,&y);
-    printf("Mensagem do jogo                        |\n________________________________________\n");
+    printf("Mensagem do jogo                                            |\n____________________________________________________________\n");
     for(int i = 0;i<TAM;i++){
         for(int j=0;j<TAM;j++){
             imprimirComEmojis(mundo[i][j]);
@@ -676,18 +705,18 @@ int main(){
         printf("\n");
     }
     printf("Elementos do jogo: \n");
-    printf("Montanha = ^ \n Água = ~ \n Terra = . \n Jogador = P \n");
+    printf("Montanha = 🗻 | Água = 💧 | Terra = 🟩 | Jogador = 🤠 \n");
     printf("______________________________________________\n");
     printf("WASD para movimento, X para sair, para outros comandos digite ? \n\n");
     printf("Pressione qualquer tecla para continuar: ");
     getchar();
     limparTela();
 
-    char mensagemNotificacao[100] = "";
+    int mensagensTurnoAnterior = 0;
     while (1){
         //Geração do mundo, irá ser gerado enquanto o while não for 1
-        desenharUI(mundo,mensagemNotificacao);
-        mensagemNotificacao[0] = '\0';
+        int mensagensPorTurno = 0;
+        desenharUI(mundo,logMensagens,mensagensTurnoAnterior);
         int chance = rand() % 100;
 
         int armazenarComando = movimentoJogador(mundo,armazenamento,'P',&x,&y,TAM);
@@ -699,7 +728,6 @@ int main(){
             inventario(mochila);
             getchar();
             getchar();
-            desenharUI(mundo,mensagemNotificacao);
         }
         if(armazenarComando == 7){
             limparTela();
@@ -715,6 +743,13 @@ int main(){
             getchar();
             limparTela();
         }
+        if(armazenarComando == 9){
+            limparTela();
+            exibirLog(logMensagens);
+            getchar();
+            getchar();
+            limparTela();
+        }
         if(armazenarComando == 98){
             limparTela();
             ajuda();
@@ -722,11 +757,11 @@ int main(){
             getchar();
         }
         if(armazenarComando == 99){
-            strcpy(mensagemNotificacao,"Movimento inválido, use WASD \n");
+            adicionarLog(logMensagens,"Movimento inválido, use WASD \n",&mensagensPorTurno);
         }
         if(armazenamento[x][y] == '.' && chance < 25){
             adicionarItemMundo(mochila,1);
-            strcpy(mensagemNotificacao, "Você coletou +1 madeira!");
+            adicionarLog(logMensagens, "Você coletou +1 madeira!",&mensagensPorTurno);
         }
         //Checagem da posição do jogador e do inimigo
         for(int i = 0; i<quantidadeInimigos;i++){
@@ -743,7 +778,6 @@ int main(){
                     printf("Você venceu o inimigo!\n Pressione Enter para continuar! \n");
                     getchar();
                     getchar();
-                    desenharUI(mundo,mensagemNotificacao);
                 }
             }
         }
@@ -753,6 +787,10 @@ int main(){
             vila(armazenarComando,x,y,vilas,&vilasEncontradas);
         }
 
+        if(mensagensPorTurno == 0){
+            adicionarLog(logMensagens, "", &mensagensPorTurno);
+        }
+        mensagensTurnoAnterior = mensagensPorTurno;
     }
     for(int i = 0;i<TAM;i++){
         free(mundo[i]);
