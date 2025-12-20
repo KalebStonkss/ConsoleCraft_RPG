@@ -20,6 +20,7 @@
   - 🏠 significa uma vila/casa
   - 🤠 é o jogador, você :D
 ## Progresso atual do código
+  - Não conseguiu encontrar o jogador? O jogo agora irá indicar onde ele está antes de começar para ajudar!
   - Você pode encontrar cavernas pelo mapa agora
   - Compatibilidade com Linux 
   - Criação do inventário
