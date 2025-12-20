@@ -20,7 +20,7 @@
   - 🏠 significa uma vila/casa
   - 🤠 é o jogador, você :D
 ## Progresso atual do código
-  - Compatibilidade com Linux 🎉
+  - Você pode encontrar cavernas pelo mapa agora
+  - Compatibilidade com Linux 
   - Criação do inventário
-  - Melhoria visual no jogo com emojis
   - Sistema de crafting básico completo
