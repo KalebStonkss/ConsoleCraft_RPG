@@ -20,6 +20,10 @@
 #define MAX_MENSAGENS 20
 #define MAX_TAM_MENSAGENS 80
 
+#define ANSI_COLOR_FOSCO "\x1b[90m" // Cinza escuro (Bright Black)
+#define ANSI_BG_YELLOW   "\x1b[43m" // Fundo Amarelo
+#define ANSI_RESET       "\x1b[0m"   // Reseta para a cor padrão
+
 //P.S, quando for usar os emojis, usa esses (tem a mesma quantidade de bytes, se preferir mude para outros emojis com os mesmos bytes): 🤠💀🗻💧🟩
 
 struct Receita{
@@ -131,6 +135,37 @@ void imprimirComEmojis(char caractere){
             printf("%-4c", caractere);
             break;
     }
+}
+void imprimirFosco(char caractere){
+    if(caractere == 'P'){
+        printf("%-4s", "🤠");
+    }
+    else{
+        printf("%-4s", "🌑");
+    }
+}
+void destacarJogador(char **mundo, int jogador_x,int jogador_y){
+    limparTela();
+
+    gotoxy(0,2);
+    for(int i=0;i<TAM;i++){
+        for(int j=0;j<TAM;j++){
+            if(i == jogador_x && j == jogador_y){
+                printf(ANSI_BG_YELLOW);
+                imprimirFosco(mundo[i][j]);
+                printf(ANSI_RESET);
+            }
+            else{
+                printf(ANSI_COLOR_FOSCO);
+                imprimirFosco(mundo[i][j]);
+                printf(ANSI_RESET);
+            }
+        }
+        printf("\n");
+    }
+    printf("\nAntes de começar, o jogador 🤠 irá se destacar no mapa!\n");
+    fflush(stdout);
+    dormir(3000);
 }
 //função para criar o mundo inicial
 void criarMundo(int seed, char **mundo,char **armazenamento, int **mapaMascaraMineracao){
@@ -832,6 +867,7 @@ int main(){
     printf("Pressione qualquer tecla para continuar: ");
     getchar();
     limparTela();
+    destacarJogador(mundo,x,y);
 
     int mensagensTurnoAnterior = 0;
     while (1){
