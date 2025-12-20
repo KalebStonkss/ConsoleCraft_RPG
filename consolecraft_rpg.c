@@ -14,6 +14,9 @@
 #define TAM_VILA 10
 #define MAX_VILAS_ENCONTRADAS 20
 
+#define TAM_CAVE 10
+#define MAX_CAVERNAS_ENCONTRADAS 15
+
 #define MAX_MENSAGENS 20
 #define MAX_TAM_MENSAGENS 80
 
@@ -45,6 +48,12 @@ struct Vila{
     int x;
     int y;
     char mapa[TAM_VILA][TAM_VILA];
+};
+
+struct Caverna{
+    int x;
+    int y;
+    char mapaCaverna[TAM_CAVE][TAM_CAVE];
 };
 
 struct SlotItem{
@@ -112,13 +121,19 @@ void imprimirComEmojis(char caractere){
         case 'H':
             printf("%-4s", "🏠");
             break;
+        case 'F':
+            printf("%-4s", "🔩");
+            break;
+        case '|':
+            printf("%-4s", "🟫");
+            break;
         default:
             printf("%-4c", caractere);
             break;
     }
 }
 //função para criar o mundo inicial
-void criarMundo(int seed, char **mundo,char **armazenamento){
+void criarMundo(int seed, char **mundo,char **armazenamento, int **mapaMascaraMineracao){
     srand(time(NULL));
     for(int i = 0; i<TAM;i++){
         for(int j = 0;j<TAM;j++){
@@ -126,18 +141,32 @@ void criarMundo(int seed, char **mundo,char **armazenamento){
             if(seed < 2){
                 mundo[i][j] = 'V';
                 armazenamento[i][j] = mundo[i][j];
+                mapaMascaraMineracao[i][j] = 0;
             }
             else if(seed < 10){
                 mundo[i][j] = '^';
                 armazenamento[i][j] = mundo[i][j];
+                if(rand() % 100 < 75){
+                    mapaMascaraMineracao[i][j] = 1;
+                }
+                else {
+                    mapaMascaraMineracao[i][j] = 0;
+                }
             }
             else if(seed < 40){
                 mundo[i][j] = '~';
                 armazenamento[i][j] = mundo[i][j];
+                mapaMascaraMineracao[i][j] = 0;
             }
             else if(seed < 100){
                 mundo[i][j] = '.';
                 armazenamento[i][j] = mundo[i][j];
+                if(rand() % 100 < 50){
+                    mapaMascaraMineracao[i][j] = 1;
+                }
+                else{
+                    mapaMascaraMineracao[i][j] = 0;
+                }
             }
         }
     }
@@ -309,9 +338,7 @@ int ataque(int vida, int ataque, struct Inimigo inimigo1[], int indice,struct Sl
     }
 }
 
-void minerar(){
-    printf("Mecânica em progresso :)");
-}
+
 const char* bibliotecaIDs(int id){
     switch(id){
         //Vazio
@@ -320,6 +347,8 @@ const char* bibliotecaIDs(int id){
         //ID(1-100) -> Elementos Básicos
         case 1: return "Madeira";
         case 2: return "Osso de esqueleto";
+        case 3: return "Pedra";
+        case 4: return "Ferro";
 
         //ID(101-500) -> Elementos Compostos (precisam de crafting para existir)
         case 101: return "Picareta";
@@ -645,6 +674,93 @@ void vila(int comando,int jogador_x, int jogador_y, struct Vila vilas[],int *ind
     free(coordenadasVila);
     free(armazenamentoVila);
 }
+
+void minerar(int jogador_x, int jogador_y, struct Caverna cavernas[],int *indice_cavernas){
+    struct Caverna *cavernaAtual = NULL;
+    int seedCaverna;
+
+    for(int i = 0; i< *indice_cavernas;i++){
+        if(cavernas[i].x == jogador_x && cavernas[i].y == jogador_y){
+            cavernaAtual = &cavernas[i];
+            break;
+        }
+    }
+
+    if(cavernaAtual == NULL){
+        cavernaAtual = &cavernas[*indice_cavernas];
+
+        cavernaAtual->x = jogador_x;
+        cavernaAtual->y = jogador_y;
+        srand(time(NULL));
+        for(int i = 0; i<TAM_CAVE;i++){
+            for(int j = 0;j<TAM_CAVE;j++){
+                seedCaverna = rand() % 100;
+                if(seedCaverna < 8){
+                    cavernaAtual->mapaCaverna[i][j] = 'F';                    
+                }
+                else if(seedCaverna < 100){
+                    cavernaAtual->mapaCaverna[i][j] = '|';                    
+                }
+            }
+        }
+        (*indice_cavernas)++;
+        printf("Você encontrou uma caverna nova! \n");
+    }
+
+    int x = TAM_CAVE/2;
+    int y = 0;
+    char **coordenadasCaverna = (char **)malloc(TAM_CAVE * sizeof(char *));
+    char **armazenamentoCaverna = (char **)malloc(TAM_CAVE * sizeof(char *));
+    if(coordenadasCaverna == NULL || armazenamentoCaverna == NULL){
+        printf("Erro de alocação de memória \n");
+        return;
+    }
+    for(int i = 0; i<TAM_CAVE;i++){
+        coordenadasCaverna[i] = (char *)calloc(TAM_CAVE,sizeof(char));
+        armazenamentoCaverna[i] = (char *)calloc(TAM_CAVE,sizeof(char));
+
+        if(coordenadasCaverna[i] == NULL || armazenamentoCaverna[i] == NULL){
+            printf("Erro de alocação de memória \n");
+            return;
+        }
+    }
+    
+    for(int i=0;i<TAM_CAVE;i++){
+        for(int j=0;j<TAM_CAVE;j++){
+            coordenadasCaverna[i][j] = cavernaAtual->mapaCaverna[i][j];
+            armazenamentoCaverna[i][j] = cavernaAtual->mapaCaverna[i][j];
+        }
+    }
+    coordenadasCaverna[x][y] = 'P';
+    while(1){
+        limparTela();
+        
+        for(int i=0;i<TAM_CAVE;i++){
+            for(int j=0;j<TAM_CAVE;j++){
+                imprimirComEmojis(coordenadasCaverna[i][j]);
+            }
+            printf(" \n");
+        }
+        int x_ant = x;
+        int y_ant = y;
+        movimentoJogador(coordenadasCaverna,armazenamentoCaverna,'P',&x,&y,TAM_CAVE);
+        if(x_ant == x && y_ant == y){
+            if(x == 0 || x == TAM_CAVE-1 || y == 0 || y == TAM_CAVE-1){
+                limparTela();
+                printf("Você está saindo da caverna");
+                dormir(2000);
+                break;
+            }
+        }
+    }
+
+    for(int i = 0;i<TAM_CAVE;i++){
+        free(coordenadasCaverna[i]);
+        free(armazenamentoCaverna[i]);
+    }
+    free(coordenadasCaverna);
+    free(armazenamentoCaverna);
+}
 int main(){
     limparTela();
     #ifdef _WIN32
@@ -663,6 +779,9 @@ int main(){
     struct Vila vilas[MAX_VILAS_ENCONTRADAS];
     int vilasEncontradas = 0;
 
+    struct Caverna cavernas[MAX_CAVERNAS_ENCONTRADAS];
+    int cavernasEncontradas = 0;
+
     struct SlotItem mochila[15];
     for(int i =0;i<15;i++){
         mochila[i].id = -1;
@@ -679,8 +798,6 @@ int main(){
     int seed = 0;
     int *pseed = &seed;
     char **mundo = (char **)malloc(TAM * sizeof(char *));
-
-
     for(int i = 0;i<TAM;i++){
         mundo[i] = (char *)calloc(TAM, sizeof(char));
     }
@@ -690,10 +807,14 @@ int main(){
         armazenamento[i] = (char *)calloc(TAM, sizeof(char));
     }
 
+    int **mapaMascaraMineracao = (int **)malloc(TAM * sizeof(int *));
+    for(int i = 0;i<TAM;i++){
+        mapaMascaraMineracao[i] = (int *)calloc(TAM, sizeof(int));
+    }
     int x,y;
     int xzumbi,yzumbi;
     int xesqueleto,yesqueleto;
-    criarMundo(*pseed,mundo,armazenamento);
+    criarMundo(*pseed,mundo,armazenamento,mapaMascaraMineracao);
     jogador(mundo,armazenamento,&x,&y);
     zumbi(mundo,armazenamento,inimigo,&xzumbi,&yzumbi,&quantidadeInimigos,&x,&y);
     esqueleto(mundo,armazenamento,inimigo,&xesqueleto,&yesqueleto,&quantidadeInimigos,&x,&y);
@@ -737,11 +858,12 @@ int main(){
             limparTela();
         }
         if(armazenarComando == 8){
-            limparTela();
-            minerar();
-            getchar();
-            getchar();
-            limparTela();
+            if(mapaMascaraMineracao[x][y] == 1){
+                minerar(x,y,cavernas,&cavernasEncontradas);
+            }
+            else{
+                adicionarLog(logMensagens,"Você tentou minerar, mas nada encontrou. \n",&mensagensPorTurno);
+            }
         }
         if(armazenarComando == 9){
             limparTela();
