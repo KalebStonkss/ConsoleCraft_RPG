@@ -700,6 +700,14 @@ void vila(int comando,int jogador_x, int jogador_y, struct Vila vilas[],int *ind
                 break;
             }
         }
+        if(armazenamentoVila[x][y] == 'H'){
+            limparTela();
+            printf("👨 \n");
+            printf("Olá, você parece ser novo por aqui!");
+            getchar();
+            getchar();
+            limparTela();
+        }
     }
     
     for(int i = 0;i < TAM_VILA;i++){
