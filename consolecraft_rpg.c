@@ -129,7 +129,7 @@ void imprimirComEmojis(char caractere){
             printf("%-4s", "🔩");
             break;
         case '|':
-            printf("%-4s", "🟫");
+            printf("%-4s", "🌑");
             break;
         default:
             printf("%-4c", caractere);
@@ -718,7 +718,7 @@ void vila(int comando,int jogador_x, int jogador_y, struct Vila vilas[],int *ind
     free(armazenamentoVila);
 }
 
-void minerar(int jogador_x, int jogador_y, struct Caverna cavernas[],int *indice_cavernas){
+void minerar(int jogador_x, int jogador_y, struct Caverna cavernas[],int *indice_cavernas,struct SlotItem mochila[]){
     struct Caverna *cavernaAtual = NULL;
     int seedCaverna;
 
@@ -787,6 +787,10 @@ void minerar(int jogador_x, int jogador_y, struct Caverna cavernas[],int *indice
         int x_ant = x;
         int y_ant = y;
         movimentoJogador(coordenadasCaverna,armazenamentoCaverna,'P',&x,&y,TAM_CAVE);
+        if(armazenamentoCaverna[x][y] == 'F'){
+            adicionarItemMundo(mochila,4);
+            armazenamentoCaverna[x][y] = '|';
+        }
         if(x_ant == x && y_ant == y){
             if(x == 0 || x == TAM_CAVE-1 || y == 0 || y == TAM_CAVE-1){
                 limparTela();
@@ -903,7 +907,7 @@ int main(){
         }
         if(armazenarComando == 8){
             if(mapaMascaraMineracao[x][y] == 1){
-                minerar(x,y,cavernas,&cavernasEncontradas);
+                minerar(x,y,cavernas,&cavernasEncontradas,mochila);
             }
             else{
                 adicionarLog(logMensagens,"Você tentou minerar, mas nada encontrou. \n",&mensagensPorTurno);
