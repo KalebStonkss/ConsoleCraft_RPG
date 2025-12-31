@@ -350,20 +350,30 @@ void esqueleto(char **mundo,char **armazenamento, struct Inimigo inimigo2[],int 
         (*quantidade)++;
     }
 }
-int ataque(int vida, int ataque, struct Inimigo inimigo1[], int indice,struct SlotItem mochila[]){
+int ataque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,struct SlotItem mochila[]){
+    int vidaInimigoAntes = inimigo1[indice].vida;
     char comando;
+    comando = toupper(comando);
     printf("Você está atacando >:D \n");
-    printf("Vida = %d \n",vida);
+    printf("Vida = %d \n",*vida);
     while(vida !=0 && inimigo1[indice].vida !=0){
-        puts("Digite Z para atacar \n");
+        puts("[Z] Atacar | [X] Escapar\n");
         scanf(" %c",&comando);
-        if(comando == 'z' || comando == 'Z'){
+        if(comando == 'x'){
+            limparTela();
+            printf("🤠 - Não tô muito afim de lutar agora \n");
+            inimigo1[indice].vida = vidaInimigoAntes;
+            dormir(1500);
+            return 2;
+        }
+        if(comando == 'z'){
             inimigo1[indice].vida = inimigo1[indice].vida - ataque;
             printf("Você usou um ataque com %d de dano \n Vida atual do inimigo = %d \n", ataque, inimigo1[indice].vida);
-            vida = vida - inimigo1[indice].ataque;
-            printf("O inimigo usou um ataque com %d de dano \n Sua vida atual = %d \n", inimigo1[indice].ataque, vida);
+            dormir(1000);
+            *vida = *vida - inimigo1[indice].ataque;
+            printf("O inimigo usou um ataque com %d de dano \n Sua vida atual = %d \n", inimigo1[indice].ataque, *vida);
         }
-        if(vida <= 0){
+        if(*vida <= 0){
             return 1;
         }
         else if(inimigo1[indice].vida <= 0){
@@ -371,6 +381,7 @@ int ataque(int vida, int ataque, struct Inimigo inimigo1[], int indice,struct Sl
             return 0;
         }
     }
+    return 2;
 }
 
 
@@ -386,7 +397,8 @@ const char* bibliotecaIDs(int id){
         case 4: return "Ferro";
 
         //ID(101-500) -> Elementos Compostos (precisam de crafting para existir)
-        case 101: return "Picareta";
+        case 101: return "Picareta de Madeira";
+        case 102: return "Picareta de Ferro";
 
         //Caso desconhecido/genérico
         default: return "?";
@@ -406,13 +418,31 @@ void inventario(struct SlotItem mochila[]){
     printf("Pressione Enter para fechar \n");
 }
 
+int verificarMochila(struct SlotItem mochila[],int id_escolhido){
+    for(int i = 0;i<15;i++){
+        if(mochila[i].id == id_escolhido){
+            return 1;
+        }
+    }
+    return 0;
+}
+
 void bancoReceitas(struct Receita receitas[], int *quantidadeReceitas){
     int i = 0;
     receitas[i].itemDesejado = 101;
-    receitas[i].quantidade_um = 4;
+    receitas[i].quantidade_um = 5;
     receitas[i].id_um = 1;
     receitas[i].id_dois = 0;
     receitas[i].quantidade_dois = 0;
+    receitas[i].id_tres = 0;
+    receitas[i].quantidade_tres = 0;
+    i++;
+
+    receitas[i].itemDesejado = 102;
+    receitas[i].quantidade_um = 3;
+    receitas[i].id_um = 4;
+    receitas[i].id_dois = 1;
+    receitas[i].quantidade_dois = 2;
     receitas[i].id_tres = 0;
     receitas[i].quantidade_tres = 0;
     i++;
@@ -464,7 +494,7 @@ void removerItemsCrafting(struct SlotItem mochila[],struct Receita receita_escol
             }
         }
     }
-    else if(receita_escolhida.id_dois > 0){
+    if(receita_escolhida.id_dois > 0){
         for(int i = 0;i<15;i++){
             if(mochila[i].id == receita_escolhida.id_dois){
                 mochila[i].quantidade = mochila[i].quantidade - receita_escolhida.quantidade_dois;
@@ -476,7 +506,7 @@ void removerItemsCrafting(struct SlotItem mochila[],struct Receita receita_escol
             }
         }
     }
-    else if(receita_escolhida.id_tres > 0){
+    if(receita_escolhida.id_tres > 0){
         for(int i = 0;i<15;i++){
             if(mochila[i].id == receita_escolhida.id_tres){
                 mochila[i].quantidade = mochila[i].quantidade - receita_escolhida.quantidade_tres;
@@ -523,15 +553,14 @@ void crafting(struct SlotItem mochila[], struct Receita receitas[],int totalRece
         printf("Sua escolha não está na lista de receitas \n");
         return;
     }
-    for(int i = 0;i < totalReceitas;i++){
-        if(id_escolhido == i && podeFabricar[id_escolhido] == 1){
-            adicionarItemCrafting(mochila,receitas[id_escolhido].itemDesejado);
-            removerItemsCrafting(mochila,receitas[id_escolhido]);
-            printf("Item adicionado com sucesso! \n");
-        }
-        else{
-            printf("Você não pode fabricar esse item ainda");
-        }
+    
+    if(podeFabricar[id_escolhido] == 1){
+        adicionarItemCrafting(mochila,receitas[id_escolhido].itemDesejado);
+        removerItemsCrafting(mochila,receitas[id_escolhido]);
+        printf("Item adicionado com sucesso! \n");
+    }
+    else{
+        printf("Você não pode fabricar esse item ainda");
     }
 }
 
@@ -786,11 +815,17 @@ void minerar(int jogador_x, int jogador_y, struct Caverna cavernas[],int *indice
         }
         int x_ant = x;
         int y_ant = y;
-        movimentoJogador(coordenadasCaverna,armazenamentoCaverna,'P',&x,&y,TAM_CAVE);
-        if(armazenamentoCaverna[x][y] == 'F'){
+        if(armazenamentoCaverna[x][y] == 'F' && verificarMochila(mochila,101) == 1){
             adicionarItemMundo(mochila,4);
             armazenamentoCaverna[x][y] = '|';
+            printf("Você minerou 1 ferro!");
         }
+        else if(armazenamentoCaverna[x][y] == 'F' && verificarMochila(mochila,101) == 0){
+            printf("Parece que precisa de uma picareta melhor para isso");
+        }
+
+        movimentoJogador(coordenadasCaverna,armazenamentoCaverna,'P',&x,&y,TAM_CAVE);
+
         if(x_ant == x && y_ant == y){
             if(x == 0 || x == TAM_CAVE-1 || y == 0 || y == TAM_CAVE-1){
                 limparTela();
@@ -888,6 +923,9 @@ int main(){
         desenharUI(mundo,logMensagens,mensagensTurnoAnterior);
         int chance = rand() % 100;
 
+        int x_ant = x;
+        int y_ant = y;
+
         int armazenarComando = movimentoJogador(mundo,armazenamento,'P',&x,&y,TAM);
         if(armazenarComando == 1){
             break;
@@ -937,9 +975,19 @@ int main(){
         for(int i = 0; i<quantidadeInimigos;i++){
             if(inimigo[i].estadoAtual && x == inimigo[i].x && y == inimigo[i].y){
                 limparTela();
-                if(ataque(vidaInicialJogador,ataqueInicialJogador,inimigo,i,mochila)){
+                int luta = ataque(&vidaInicialJogador,ataqueInicialJogador,inimigo,i,mochila);
+                if(luta == 1){
                     printf("\nGame Over :<\n Reinicie o jogo! \n");
                     exit(0);
+                }
+                if(luta == 2){
+                    x = x_ant;
+                    y = y_ant;
+                    char tipoInimigo = (inimigo[i].id == 1) ? 'Z' : 'E';
+                    mundo[inimigo[i].x][inimigo[i].y] = tipoInimigo; 
+
+                    mundo[x][y] = 'P';
+                    limparTela();
                 }
                 else{
                     inimigo[i].estadoAtual = 0;
