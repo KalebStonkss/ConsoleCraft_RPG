@@ -22,6 +22,7 @@
 
 #define ANSI_COLOR_FOSCO "\x1b[90m" // Cinza escuro (Bright Black)
 #define ANSI_BG_YELLOW   "\x1b[43m" // Fundo Amarelo
+#define ANSI_BG_LIGHT_GREEN "\x1b[102m" // Fundo Cinza
 #define ANSI_RESET       "\x1b[0m"   // Reseta para a cor padrão
 
 //P.S, quando for usar os emojis, usa esses (tem a mesma quantidade de bytes, se preferir mude para outros emojis com os mesmos bytes): 🤠💀🗻💧🟩
@@ -130,6 +131,11 @@ void imprimirComEmojis(char caractere){
             break;
         case '|':
             printf("%-4s", "🌑");
+            break;
+        case 'A':
+            printf(ANSI_BG_LIGHT_GREEN);
+            printf("%-4s", "🌾");
+            printf(ANSI_RESET);
             break;
         default:
             printf("%-4c", caractere);
@@ -307,13 +313,40 @@ void adicionarItemMundo(struct SlotItem mochila[], int id_item){
         }
     }
 }
+
+const char* bibliotecaIDs(int id){
+    switch(id){
+        //Vazio
+        case -1: return "Vazio";
+
+        //ID(1-100) -> Elementos Básicos
+        case 1: return "Madeira";
+        case 2: return "Osso de esqueleto";
+        case 3: return "Pedra";
+        case 4: return "Ferro";
+        case 5: return "Prisma Luminosa";
+
+        //ID(101-500) -> Elementos Compostos (precisam de crafting para existir)
+        case 101: return "Picareta de Madeira";
+        case 102: return "Picareta de Ferro";
+        case 103: return "Balde (vazio)";
+
+        //ID(501-550) -> Inimigos/Personagens
+        case 501: return "Zumbi";
+        case 502: return "Esqueleto";
+
+        //Caso desconhecido/genérico
+        default: return "?";
+    }
+}
+
 void zumbi(char **mundo,char **armazenamento, struct Inimigo inimigo1[],int *xzumbi,int *yzumbi,int *quantidade,int *x,int *y){
     char zumbi = 'Z';
     int quantidadeSpawn = rand() % 10 + 1;
     for(int i = 0;i<quantidadeSpawn;i++){
         *xzumbi = rand() % TAM;
         *yzumbi = rand() % TAM;
-        inimigo1[*quantidade].id = 1;
+        inimigo1[*quantidade].id = 501;
         inimigo1[*quantidade].vida = 35;
         inimigo1[*quantidade].ataque = 10;
         inimigo1[*quantidade].x = *xzumbi;
@@ -335,7 +368,7 @@ void esqueleto(char **mundo,char **armazenamento, struct Inimigo inimigo2[],int 
     for(int i = 0; i<quantidadeSpawn;i++){
         *xesqueleto = rand() % TAM;
         *yesqueleto = rand() % TAM;
-        inimigo2[*quantidade].id = 2;
+        inimigo2[*quantidade].id = 502;
         inimigo2[*quantidade].item = 2;
         inimigo2[*quantidade].vida = 30;
         inimigo2[*quantidade].ataque = 20;
@@ -354,7 +387,7 @@ int ataque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,struct S
     int vidaInimigoAntes = inimigo1[indice].vida;
     char comando;
     comando = toupper(comando);
-    printf("Você está atacando >:D \n");
+    printf("Você está atacando um %s >:D \n",bibliotecaIDs(inimigo1[indice].id));
     printf("Vida = %d \n",*vida);
     while(vida !=0 && inimigo1[indice].vida !=0){
         puts("[Z] Atacar | [X] Escapar\n");
@@ -385,25 +418,6 @@ int ataque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,struct S
 }
 
 
-const char* bibliotecaIDs(int id){
-    switch(id){
-        //Vazio
-        case -1: return "Vazio";
-
-        //ID(1-100) -> Elementos Básicos
-        case 1: return "Madeira";
-        case 2: return "Osso de esqueleto";
-        case 3: return "Pedra";
-        case 4: return "Ferro";
-
-        //ID(101-500) -> Elementos Compostos (precisam de crafting para existir)
-        case 101: return "Picareta de Madeira";
-        case 102: return "Picareta de Ferro";
-
-        //Caso desconhecido/genérico
-        default: return "?";
-    }
-}
 void inventario(struct SlotItem mochila[]){
     printf("---Inventário---\n");
     for(int i=0;i<15;i++){
@@ -443,6 +457,15 @@ void bancoReceitas(struct Receita receitas[], int *quantidadeReceitas){
     receitas[i].id_um = 4;
     receitas[i].id_dois = 1;
     receitas[i].quantidade_dois = 2;
+    receitas[i].id_tres = 0;
+    receitas[i].quantidade_tres = 0;
+    i++;
+
+    receitas[i].itemDesejado = 103;
+    receitas[i].quantidade_um = 3;
+    receitas[i].id_um = 4;
+    receitas[i].id_dois = 0;
+    receitas[i].quantidade_dois = 0;
     receitas[i].id_tres = 0;
     receitas[i].quantidade_tres = 0;
     i++;
@@ -539,7 +562,7 @@ void crafting(struct SlotItem mochila[], struct Receita receitas[],int totalRece
             printf("| %dx %s",receitas[i].quantidade_tres,bibliotecaIDs(receitas[i].id_tres));
         }
         if(verificarCrafting(receitas[i],mochila)){
-            printf("- Fabricável ✅)\n");
+            printf(" - Fabricável ✅)\n");
             podeFabricar[i] = 1;
         }
         else{
@@ -653,7 +676,10 @@ void vila(int comando,int jogador_x, int jogador_y, struct Vila vilas[],int *ind
         for(int i = 0; i<TAM_VILA;i++){
             for(int j = 0;j<TAM_VILA;j++){
                 seedVila = rand() % 100;
-                if(seedVila < 8){
+                if(seedVila < 4){
+                    vilaAtual->mapa[i][j] = 'A';
+                }
+                else if(seedVila < 12){
                     vilaAtual->mapa[i][j] = 'H';                    
                 }
                 else if(seedVila < 100){
@@ -818,10 +844,10 @@ void minerar(int jogador_x, int jogador_y, struct Caverna cavernas[],int *indice
         if(armazenamentoCaverna[x][y] == 'F' && verificarMochila(mochila,101) == 1){
             adicionarItemMundo(mochila,4);
             armazenamentoCaverna[x][y] = '|';
-            printf("Você minerou 1 ferro!");
+            printf("Você minerou 1 ferro! \n");
         }
         else if(armazenamentoCaverna[x][y] == 'F' && verificarMochila(mochila,101) == 0){
-            printf("Parece que precisa de uma picareta melhor para isso");
+            printf("Parece que precisa de uma picareta melhor para isso \n");
         }
 
         movimentoJogador(coordenadasCaverna,armazenamentoCaverna,'P',&x,&y,TAM_CAVE);
@@ -915,7 +941,7 @@ int main(){
     getchar();
     limparTela();
     destacarJogador(mundo,x,y);
-
+    limparTela();
     int mensagensTurnoAnterior = 0;
     while (1){
         //Geração do mundo, irá ser gerado enquanto o while não for 1
@@ -970,6 +996,10 @@ int main(){
         if(armazenamento[x][y] == '.' && chance < 25){
             adicionarItemMundo(mochila,1);
             adicionarLog(logMensagens, "Você coletou +1 madeira!",&mensagensPorTurno);
+        }
+        if(armazenamento[x][y] == '~' && chance < 10){
+            adicionarItemMundo(mochila,5);
+            adicionarLog(logMensagens, "Você coletou +1 prisma luminosa",&mensagensPorTurno);
         }
         //Checagem da posição do jogador e do inimigo
         for(int i = 0; i<quantidadeInimigos;i++){
