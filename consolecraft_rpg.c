@@ -417,6 +417,38 @@ int ataque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,struct S
     return 2;
 }
 
+void equipamento(struct SlotItem mochila[]){
+    int peitoral = 1;
+    int calca = 1;
+    int botas = 1;
+    int escudo = 0;
+
+    printf("\n");
+    printf("         //////////         \n");
+    printf("        ////////////        \n");
+    printf("        ////////////        \n");
+    printf("         //////////         \n");
+    printf("\n");
+    printf("   ██████          ██████   \n");
+    printf(" ██████████████████████████ \n");
+    printf("████████████████████████████\n");
+    printf("████████████████████████████\n");
+    printf("    ████████████████████    \n");
+    printf("    ████████████████████    \n");
+    printf("    ████████████████████    \n");
+    printf("\n");
+    printf("    ████████████████████    \n");
+    printf("    ████████████████████    \n");
+    printf("    ████████    ████████    \n");
+    printf("    ████████    ████████    \n");
+    printf("    ████████    ████████    \n");
+    printf("    ████████    ████████    \n");
+    printf("\n");
+    printf("    ████████    ████████    \n");
+    printf("████████████    ████████████\n");
+    printf("████████████    ████████████\n");
+    printf("████████████    ████████████\n");                                                            
+}    
 
 void inventario(struct SlotItem mochila[]){
     printf("---Inventário---\n");
@@ -644,6 +676,9 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
            break;
         case 'L':
            return 9;
+           break;
+        case 'E':
+           return 10;
            break;
         case '?':
            return 98;
@@ -980,6 +1015,13 @@ int main(){
         if(armazenarComando == 9){
             limparTela();
             exibirLog(logMensagens);
+            getchar();
+            getchar();
+            limparTela();
+        }
+        if(armazenarComando == 10){
+            limparTela();
+            equipamento(mochila);
             getchar();
             getchar();
             limparTela();
