@@ -139,6 +139,11 @@ void imprimirComEmojis(char caractere){
             printf("%-4s", "🌾");
             printf(ANSI_RESET);
             break;
+        case 'B':
+            printf(ANSI_BG_LIGHT_GREEN);
+            printf("%-4s", "🏫");
+            printf(ANSI_RESET);
+            break;
         default:
             printf("%-4c", caractere);
             break;
@@ -696,6 +701,7 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
 void vila(int comando,int jogador_x, int jogador_y, struct Vila vilas[],int *indice_vilas){
     struct Vila *vilaAtual = NULL;
     int seedVila;
+    int biblioteca = 0;
     for(int i=0;i< *indice_vilas;i++){
         if(vilas[i].x == jogador_x && vilas[i].y == jogador_y){
             vilaAtual = &vilas[i];
@@ -718,6 +724,10 @@ void vila(int comando,int jogador_x, int jogador_y, struct Vila vilas[],int *ind
                 }
                 else if(seedVila < 12){
                     vilaAtual->mapa[i][j] = 'H';                    
+                }
+                else if(seedVila < 13 && !biblioteca){
+                    vilaAtual->mapa[i][j] = 'B';
+                    biblioteca = 1;
                 }
                 else if(seedVila < 100){
                     vilaAtual->mapa[i][j] = '.';                    
