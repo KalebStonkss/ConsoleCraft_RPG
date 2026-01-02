@@ -14,8 +14,8 @@
   - No Terminal, digite "gcc -o consolecraft consolecraft_rpg.c"(sem as aspas), dê enter
   - Depois, digite "./consolecraft"(sem as aspas) e dê enter para o jogo começar
 ## Elementos do Jogo
-  -  ⛰ significa montanha
-  -  💧 significa água
+  -  🗻 significa montanha
+  -  🟦 significa água
   -  🟩 significa terra
   - 🏠 significa uma vila/casa
   - 🤠 é o jogador, você :D
