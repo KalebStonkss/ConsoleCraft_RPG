@@ -20,6 +20,8 @@
 #define MAX_MENSAGENS 20
 #define MAX_TAM_MENSAGENS 80
 
+#define ANSI_BG_AZUL_ESCURO "\x1b[44m"
+#define ANSI_BG_VERDE "\x1b[42m"
 #define ANSI_COLOR_FOSCO "\x1b[90m" // Cinza escuro (Bright Black)
 #define ANSI_BG_YELLOW   "\x1b[43m" // Fundo Amarelo
 #define ANSI_BG_LIGHT_GREEN "\x1b[102m" // Fundo Cinza
@@ -107,24 +109,24 @@ void gotoxy(int x, int y){
 void imprimirComEmojis(char caractere){
     switch(caractere){
         case 'P':
-            printf("%-4s", "🤠");
+            printf(ANSI_BG_VERDE "%-4s" ANSI_RESET, "🤠");
             break;
         case '.':
-            printf("%-4s", "🟩");
+            printf(ANSI_BG_VERDE "%-4s" ANSI_RESET, "🟩");
             break;
         case '~':
-            printf("%-4s", "💧");
+            printf(ANSI_BG_AZUL_ESCURO "%-4s" ANSI_RESET, "🟦");
             break;
         case '^':
-            printf("%-4s", "🗻");
+            printf(ANSI_BG_VERDE "%-4s" ANSI_RESET, "🗻");
             break;
         case 'Z':
         case 'E':
-            printf("%-4s", "💀");
+            printf(ANSI_BG_VERDE "%-4s" ANSI_RESET, "💀");
             break;
         case 'V':
         case 'H':
-            printf("%-4s", "🏠");
+            printf(ANSI_BG_VERDE "%-4s" ANSI_RESET, "🏠");
             break;
         case 'F':
             printf("%-4s", "🔩");
