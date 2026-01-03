@@ -399,15 +399,53 @@ void esqueleto(char **mundo,char **armazenamento, struct Inimigo inimigo2[],int 
 void interfaceAtaque(struct Inimigo inimigo1[], int indice){
     int larguraTotal = inimigo1[indice].larguraLuta;
     int alturaTotal = inimigo1[indice].alturaLuta;
+    
+    int x_jogador = alturaTotal/2;
+    int y_jogador = 0;
+
+    int x_inimigo = alturaTotal/2;
+    int y_inimigo = larguraTotal-1;
     //int coordenadasJogador[x][y] = [2][2];
     //int coordenadasInimigo[x][y] = [2][4];
+    char **coordenadasLuta = (char **)malloc(alturaTotal * sizeof(char *));
+    char **armazenamentoLuta = (char **)malloc(alturaTotal * sizeof(char *));
+    if(coordenadasLuta == NULL || armazenamentoLuta == NULL){
+        printf("Erro de alocação de memória \n");
+        return;
+    }
+    for(int i = 0;i<alturaTotal;i++){
+        coordenadasLuta[i] = (char *)calloc(larguraTotal,sizeof(char));
+        armazenamentoLuta[i] = (char *)calloc(larguraTotal,sizeof(char));
+
+        if(coordenadasLuta[i] == NULL || armazenamentoLuta[i] == NULL){
+        printf("Erro de alocação de memória \n");
+        return;
+    }
+    }
     for(int i = 0;i<alturaTotal;i++){
         for(int j = 0;j<larguraTotal;j++){
-            printf("%-4s", "🌑");
+            coordenadasLuta[i][j] = '|';
+            armazenamentoLuta[i][j] = '|';
+        }
+        printf("\n");
+    }
+    coordenadasLuta[x_jogador][y_jogador] = 'P';
+    coordenadasLuta[x_inimigo][y_inimigo] = 'E';
+
+    for(int i = 0;i<alturaTotal;i++){
+        for(int j = 0;j<larguraTotal;j++){
+            imprimirComEmojis(coordenadasLuta[i][j]);
         }
         printf("\n");
     }
     printf("\n");
+
+    for(int i = 0;i<alturaTotal;i++){
+        free(coordenadasLuta[i]);
+        free(armazenamentoLuta[i]);
+    }
+    free(coordenadasLuta);
+    free(armazenamentoLuta);
 }
 int ataque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,struct SlotItem mochila[]){
     int vidaInimigoAntes = inimigo1[indice].vida;
@@ -428,7 +466,7 @@ int ataque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,struct S
         }
         if(comando == 'z'){
             inimigo1[indice].vida = inimigo1[indice].vida - ataque;
-            printf("Você usou um ataque com %d de dano \n Vida atual do inimigo = %d \n", ataque, inimigo1[indice].vida);
+            printf("Você usou um ataque com %d de dano \n Vida atual do inimigo = %d \n\n", ataque, inimigo1[indice].vida);
             dormir(1000);
             *vida = *vida - inimigo1[indice].ataque;
             printf("O inimigo usou um ataque com %d de dano \n Sua vida atual = %d \n", inimigo1[indice].ataque, *vida);
