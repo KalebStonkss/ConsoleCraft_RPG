@@ -49,6 +49,8 @@ struct Inimigo{
     int y;
     int estadoAtual;
     int item;
+    int larguraLuta;
+    int alturaLuta;
 };
 
 struct Vila{
@@ -359,6 +361,8 @@ void zumbi(char **mundo,char **armazenamento, struct Inimigo inimigo1[],int *xzu
         inimigo1[*quantidade].x = *xzumbi;
         inimigo1[*quantidade].y = *yzumbi;
         inimigo1[*quantidade].estadoAtual = 1;
+        inimigo1[*quantidade].alturaLuta = 3;
+        inimigo1[*quantidade].larguraLuta = 6;
         //solução usada pra caso o inimigo queira nascer no mesmo quadrado do jogar, seria bizarro lidar com um inimigo logo no primeiro segundo do jogo xD
         while(mundo[*xzumbi][*yzumbi] == mundo[*x][*y]){
             *xzumbi = rand() % TAM;
@@ -382,6 +386,8 @@ void esqueleto(char **mundo,char **armazenamento, struct Inimigo inimigo2[],int 
         inimigo2[*quantidade].x = *xesqueleto;
         inimigo2[*quantidade].y = *yesqueleto;
         inimigo2[*quantidade].estadoAtual = 1;
+        inimigo2[*quantidade].alturaLuta = 3;
+        inimigo2[*quantidade].larguraLuta = 6;
         while(mundo[*xesqueleto][*yesqueleto] == mundo[*x][*y]){
             *xesqueleto = rand() % TAM;
             *yesqueleto = rand() % TAM;
@@ -390,12 +396,26 @@ void esqueleto(char **mundo,char **armazenamento, struct Inimigo inimigo2[],int 
         (*quantidade)++;
     }
 }
+void interfaceAtaque(struct Inimigo inimigo1[], int indice){
+    int larguraTotal = inimigo1[indice].larguraLuta;
+    int alturaTotal = inimigo1[indice].alturaLuta;
+    //int coordenadasJogador[x][y] = [2][2];
+    //int coordenadasInimigo[x][y] = [2][4];
+    for(int i = 0;i<alturaTotal;i++){
+        for(int j = 0;j<larguraTotal;j++){
+            printf("%-4s", "🌑");
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
 int ataque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,struct SlotItem mochila[]){
     int vidaInimigoAntes = inimigo1[indice].vida;
     char comando;
     comando = toupper(comando);
     printf("Você está atacando um %s >:D \n",bibliotecaIDs(inimigo1[indice].id));
     printf("Vida = %d \n",*vida);
+    interfaceAtaque(inimigo1,indice);
     while(vida !=0 && inimigo1[indice].vida !=0){
         puts("[Z] Atacar | [X] Escapar\n");
         scanf(" %c",&comando);
