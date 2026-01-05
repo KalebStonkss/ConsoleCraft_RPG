@@ -107,7 +107,24 @@ void gotoxy(int x, int y){
         printf("\033[%d;%dH",y+1,x+1);
     #endif
 }
-
+// P = 🤠
+// . = 🟩
+// ~ = 🟦
+// ^ = 🗻
+// ! = 🔘
+// @ = 🛑
+// | = 🌑
+// A = 🌾
+// B = 🏫
+// F = 🔩
+// I = 🧓
+// M = 🟫
+// V|H = 🏠
+// Z|E = 💀
+// 0 = 📕
+// 1 = 📘
+// 2 = 📗
+// 3 = 📙
 void imprimirComEmojis(char caractere){
     switch(caractere){
         case 'P':
@@ -122,6 +139,12 @@ void imprimirComEmojis(char caractere){
         case '^':
             printf(ANSI_BG_VERDE "%-4s" ANSI_RESET, "🗻");
             break;
+        case '!':
+            printf("%-4s", "🔘");
+            break;
+        case '@':
+            printf("%-4s", "🛑");
+            break;
         case 'Z':
         case 'E':
             printf(ANSI_BG_VERDE "%-4s" ANSI_RESET, "💀");
@@ -132,6 +155,12 @@ void imprimirComEmojis(char caractere){
             break;
         case 'F':
             printf("%-4s", "🔩");
+            break;
+        case 'I':
+            printf("%-4s", "🧓");
+            break;
+        case 'M':
+            printf("%-4s", "🟫");
             break;
         case '|':
             printf("%-4s", "🌑");
@@ -145,6 +174,18 @@ void imprimirComEmojis(char caractere){
             printf(ANSI_BG_LIGHT_GREEN);
             printf("%-4s", "🏫");
             printf(ANSI_RESET);
+            break;
+        case '0':
+            printf("%-4s", "📕");
+            break;
+        case '1':
+            printf("%-4s", "📘");
+            break;
+        case '2':
+            printf("%-4s", "📗");
+            break;
+        case '3':
+            printf("%-4s", "📙");
             break;
         default:
             printf("%-4c", caractere);
@@ -756,6 +797,128 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
     }
     return 0;
 }
+void interfaceBiblioteca(){
+    int x = 5;
+    int y = 0;
+    int mascaraBiblioteca[10][10] = 
+    {
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,4,0,0,5,5,5,5},
+    {0,0,0,4,0,0,5,5,5,5},
+    {0,2,0,4,0,0,0,0,0,0},
+    {4,4,4,4,0,0,6,6,6,6},
+    {0,3,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,7,7,7,7},
+    {0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,8,8,8,8},
+    {0,0,0,0,0,0,0,0,0,0}
+    };
+    char **coordenadasBiblioteca = (char **)malloc(10 * sizeof(char *));
+    char **armazenamentoBiblioteca = (char **)malloc(10 * sizeof(char *));
+    if(coordenadasBiblioteca == NULL || armazenamentoBiblioteca == NULL){
+        printf("Erro de alocação de memória \n");
+        return;
+    }
+    for(int i = 0; i<10;i++){
+        coordenadasBiblioteca[i] = (char *)calloc(10,sizeof(char));
+        armazenamentoBiblioteca[i] = (char *)calloc(10,sizeof(char));
+
+        if(coordenadasBiblioteca[i] == NULL || armazenamentoBiblioteca[i] == NULL){
+            printf("Erro de alocação de memória \n");
+            return;
+        }
+    }
+    for(int i = 0;i<10;i++){
+        for(int j = 0;j<10;j++){
+            switch(mascaraBiblioteca[i][j]){
+                case 0: coordenadasBiblioteca[i][j] = '@';
+                break;
+                case 1: coordenadasBiblioteca[i][j] = 'P';
+                break;
+                case 2: coordenadasBiblioteca[i][j] = 'I';
+                break;
+                case 3: coordenadasBiblioteca[i][j] = '!';
+                break;
+                case 4: coordenadasBiblioteca[i][j] = 'M';
+                break;
+                case 5: coordenadasBiblioteca[i][j] = '0';
+                break;
+                case 6: coordenadasBiblioteca[i][j] = '1';
+                break;
+                case 7: coordenadasBiblioteca[i][j] = '2';
+                break;
+                case 8: coordenadasBiblioteca[i][j] = '3';
+                break;
+            }
+        }
+    }
+    for(int i = 0;i<10;i++){
+        for(int j = 0;j<10;j++){
+            armazenamentoBiblioteca[i][j] = coordenadasBiblioteca[i][j];
+        }
+    }
+    coordenadasBiblioteca[x][y] = 'P';
+
+    while(1){
+        limparTela();
+        for(int i = 0;i<10;i++){
+            for(int j = 0;j<10;j++){
+                imprimirComEmojis(coordenadasBiblioteca[i][j]);
+            }
+            printf("\n");
+        }
+
+        int x_ant = x;
+        int y_ant = y;
+
+        movimentoJogador(coordenadasBiblioteca,armazenamentoBiblioteca,'P',&x,&y,10);
+
+        if(x_ant == x && y_ant == y){
+            if(x == 0 || x == 10-1 || y == 0 || y == 10-1){
+                break;
+            }
+        }
+
+        if(armazenamentoBiblioteca[x][y] == '0' || armazenamentoBiblioteca[x][y] == '1' || armazenamentoBiblioteca[x][y] == '2' || armazenamentoBiblioteca[x][y] == '3'){
+            x = x_ant;
+            y = y_ant;
+            limparTela();
+            printf("Você está observando um livro, mas desiste de ler pois está pensando demais no meme do tubarão estiloso \n");
+            getchar();
+            getchar();
+            limparTela();
+        }
+    }
+
+    for(int i = 0;i < 10;i++){
+        free(coordenadasBiblioteca[i]);
+        free(armazenamentoBiblioteca[i]);
+    }
+    free(coordenadasBiblioteca);
+    free(armazenamentoBiblioteca);
+    //{🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑}
+    //{🛑🛑🛑🟫🛑🛑📕📕📕📕 }
+    //{🛑🧓🛑🟫🛑🛑🛑🛑🛑🛑}
+    //{🟫🟫🟫🟫🛑🛑📘📘📘📘 }
+    //{🤠🔘🛑🛑🛑🛑🛑🛑🛑🛑}
+    //{🛑🛑🛑🛑🛑🛑📗📗📗📗 }
+    //{🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑}
+    //{🛑🛑🛑🛑🛑🛑📙📙📙📙 }
+    //{🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑}
+    //{🛑🛑🛑🛑🛑🛑🛑🛑🛑🛑}
+
+    //{0,0,0,0,0,0,0,0,0,0}
+    //{0,0,0,4,0,0,5,5,5,5}
+    //{0,2,0,4,0,0,0,0,0,0}
+    //{4,4,4,4,0,0,6,6,6,6}
+    //{1,3,0,0,0,0,0,0,0,0}
+    //{0,0,0,0,0,0,7,7,7,7}
+    //{0,0,0,0,0,0,0,0,0,0}
+    //{0,0,0,0,0,0,8,8,8,8}
+    //{0,0,0,0,0,0,0,0,0,0}
+    //{0,0,0,0,0,0,0,0,0,0}
+
+}
 void vila(int comando,int jogador_x, int jogador_y, struct Vila vilas[],int *indice_vilas){
     struct Vila *vilaAtual = NULL;
     int seedVila;
@@ -865,6 +1028,12 @@ void vila(int comando,int jogador_x, int jogador_y, struct Vila vilas[],int *ind
             printf("👨 \n");
             printf("Olá, você parece ser novo por aqui!");
             getchar();
+            getchar();
+            limparTela();
+        }
+        if(armazenamentoVila[x][y] == 'B'){
+            limparTela();
+            interfaceBiblioteca();
             getchar();
             limparTela();
         }
