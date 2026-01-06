@@ -23,9 +23,12 @@
 #define ANSI_BG_AZUL_ESCURO "\x1b[44m"
 #define ANSI_BG_VERDE "\x1b[42m"
 #define ANSI_COLOR_FOSCO "\x1b[90m" // Cinza escuro (Bright Black)
-#define ANSI_BG_YELLOW   "\x1b[43m" // Fundo Amarelo
+#define ANSI_BG_YELLOW "\x1b[43m" // Fundo Amarelo
 #define ANSI_BG_LIGHT_GREEN "\x1b[102m" // Fundo Cinza
-#define ANSI_RESET       "\x1b[0m"   // Reseta para a cor padrão
+#define ANSI_BG_LARANJA_ESCURO "\x1b[43m\x1b[2m" // Fundo Laranja Escuro
+#define ANSI_BG_MARROM "\x1b[41m\x1b[2m"
+#define ANSI_BG_CINZA_ESCURO "\x1b[5;100m"
+#define ANSI_RESET "\x1b[0m"   // Reseta para a cor padrão
 
 //P.S, quando for usar os emojis, usa esses (tem a mesma quantidade de bytes, se preferir mude para outros emojis com os mesmos bytes): 🤠💀🗻💧🟩
 
@@ -143,7 +146,7 @@ void imprimirComEmojis(char caractere){
             printf("%-4s", "🔘");
             break;
         case '@':
-            printf("%-4s", "🛑");
+            printf(ANSI_BG_LARANJA_ESCURO "%-4s" ANSI_RESET, "🛑");
             break;
         case 'Z':
         case 'E':
@@ -160,7 +163,7 @@ void imprimirComEmojis(char caractere){
             printf("%-4s", "🧓");
             break;
         case 'M':
-            printf("%-4s", "🟫");
+             printf(ANSI_BG_MARROM "%-4s" ANSI_RESET, "🟫");
             break;
         case '|':
             printf("%-4s", "🌑");
@@ -176,16 +179,16 @@ void imprimirComEmojis(char caractere){
             printf(ANSI_RESET);
             break;
         case '0':
-            printf("%-4s", "📕");
+            printf(ANSI_BG_CINZA_ESCURO "%-4s" ANSI_RESET, "📕");
             break;
         case '1':
-            printf("%-4s", "📘");
+            printf(ANSI_BG_CINZA_ESCURO "%-4s" ANSI_RESET, "📘");
             break;
         case '2':
-            printf("%-4s", "📗");
+            printf(ANSI_BG_CINZA_ESCURO "%-4s" ANSI_RESET, "📗");
             break;
         case '3':
-            printf("%-4s", "📙");
+            printf(ANSI_BG_CINZA_ESCURO "%-4s" ANSI_RESET, "📙");
             break;
         default:
             printf("%-4c", caractere);
