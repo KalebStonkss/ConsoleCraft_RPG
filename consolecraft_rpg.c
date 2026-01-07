@@ -1022,7 +1022,7 @@ void vila(int comando,int jogador_x, int jogador_y, struct Vila vilas[],int *ind
             if(x == 0 || x == TAM_VILA-1 || y == 0 || y == TAM_VILA-1){
                 limparTela();
                 printf("Você está saindo da vila");
-                dormir(2000);
+                dormir(1000);
                 break;
             }
         }
@@ -1133,7 +1133,7 @@ void minerar(int jogador_x, int jogador_y, struct Caverna cavernas[],int *indice
             if(x == 0 || x == TAM_CAVE-1 || y == 0 || y == TAM_CAVE-1){
                 limparTela();
                 printf("Você está saindo da caverna");
-                dormir(2000);
+                dormir(1000);
                 break;
             }
         }
