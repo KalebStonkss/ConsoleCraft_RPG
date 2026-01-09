@@ -464,6 +464,8 @@ const char* bibliotecaIDs(int id){
         case 101: return "Picareta de Madeira";
         case 102: return "Picareta de Ferro";
         case 103: return "Balde (vazio)";
+        case 104: return "Espada de Madeira";
+        case 105: return "Espada de Ferro";
 
         //ID(501-550) -> Inimigos/Personagens
         case 501: return "Zumbi";
@@ -474,6 +476,66 @@ const char* bibliotecaIDs(int id){
     }
 }
 
+
+
+void equipamento(struct SlotItem mochila[]){
+    int peitoral = 1;
+    int calca = 1;
+    int botas = 1;
+    int escudo = 0;
+
+    printf("\n");
+    printf("         //////////         \n");
+    printf("        ////////////        \n");
+    printf("        ////////////        \n");
+    printf("         //////////         \n");
+    printf("\n");
+    printf("   ██████          ██████   \n");
+    printf(" ██████████████████████████ \n");
+    printf("████████████████████████████\n");
+    printf("████████████████████████████\n");
+    printf("    ████████████████████    \n");
+    printf("    ████████████████████    \n");
+    printf("    ████████████████████    \n");
+    printf("\n");
+    printf("    ████████████████████    \n");
+    printf("    ████████████████████    \n");
+    printf("    ████████    ████████    \n");
+    printf("    ████████    ████████    \n");
+    printf("    ████████    ████████    \n");
+    printf("    ████████    ████████    \n");
+    printf("\n");
+    printf("    ████████    ████████    \n");
+    printf("████████████    ████████████\n");
+    printf("████████████    ████████████\n");
+    printf("████████████    ████████████\n");                                                            
+}    
+
+void inventario(struct SlotItem mochila[]){
+    printf("---Inventário---\n");
+    for(int i=0;i<15;i++){
+        printf("%d = ",i);
+        printf("%s",bibliotecaIDs(mochila[i].id));
+
+        if(mochila[i].id != -1){
+            printf(" (Quantidade: %d)",mochila[i].quantidade);
+        }
+        printf("\n");
+    }
+    printf("Pressione Enter para fechar \n");
+}
+
+int verificarMochila(struct SlotItem mochila[],int id_escolhido){
+    for(int i = 0;i<15;i++){
+        if(mochila[i].id == id_escolhido){
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
+//Funções de criar e gerenciar inimigos/ataques
 void zumbi(char **mundo,char **armazenamento, struct Inimigo inimigo1[],int *xzumbi,int *yzumbi,int *quantidade,int *x,int *y){
     char zumbi = 'Z';
     int quantidadeSpawn = rand() % 10 + 1;
@@ -562,8 +624,48 @@ void interfaceAtaque(char **coordenadasLuta, char **armazenamentoLuta,int *x, in
 
     }
 }
-void atacar(){
-    
+int atacar(struct SlotItem mochila[]){
+    int escolha;
+    int itemEscolhido;
+    int *inventarioAtaqueCurto = (int *)calloc(5, sizeof(int));
+    int *inventarioAtaqueLongo = (int *)calloc(5, sizeof(int));
+    if(inventarioAtaqueCurto == NULL || inventarioAtaqueLongo == NULL){
+        printf("Erro de alocação de memória \n");
+        return -1;
+    }
+    for(int i = 0;i<5;i++){
+        if(verificarMochila(mochila,104+i)){
+            inventarioAtaqueCurto[i] = 104+i;
+        }
+    }
+    for(int i = 0;i<5;i++){
+        if(verificarMochila(mochila,109+i)){
+            inventarioAtaqueLongo[i] = 109+i;
+        }
+    }
+    printf("Digite o número do equipamento que quer usar \n");
+    printf("Ataque Curto \n");
+    for(int i = 0;i<5;i++){
+        printf("[%d] - %s \n",i,bibliotecaIDs(inventarioAtaqueCurto[i]));
+    }
+    printf("\nAtaque Longo \n");
+    for(int i = 0;i<5;i++){
+        printf("[%d] - %s \n",i+5,bibliotecaIDs(inventarioAtaqueLongo[i]));
+    }
+    scanf("%d",&escolha);
+    if(escolha >= 0 && escolha < 5){
+        if(inventarioAtaqueCurto[escolha] >= 104){
+            itemEscolhido = inventarioAtaqueCurto[escolha];
+        }
+    }
+    if(escolha >= 5 && escolha < 10){
+        if(inventarioAtaqueLongo[escolha - 5] >= 109){
+            itemEscolhido = inventarioAtaqueLongo[escolha - 5];
+        }
+    }
+    free(inventarioAtaqueCurto);
+    free(inventarioAtaqueLongo);
+    return itemEscolhido;
 }
 void defender(){
 
@@ -625,7 +727,20 @@ int mainAtaque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,stru
             return 2;
         }
         if(comando == 'A'){
-            atacar();
+            int IdAtaque = atacar(mochila);
+            switch(IdAtaque){
+                case 104:
+                    ataque = 20;
+                break;
+
+                case 105:
+                    ataque = 25;
+                break;
+
+                default:
+                    ataque = 15;
+                break;   
+            }
             inimigo1[indice].vida = inimigo1[indice].vida - ataque;
             limparTela();
             interfaceAtaque(coordenadasLuta,armazenamentoLuta,&x_jogador,&y_jogador,espacoTotal,inimigo1,vida,indice,0);
@@ -668,62 +783,8 @@ int mainAtaque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,stru
     return 2;
 }
 
-void equipamento(struct SlotItem mochila[]){
-    int peitoral = 1;
-    int calca = 1;
-    int botas = 1;
-    int escudo = 0;
 
-    printf("\n");
-    printf("         //////////         \n");
-    printf("        ////////////        \n");
-    printf("        ////////////        \n");
-    printf("         //////////         \n");
-    printf("\n");
-    printf("   ██████          ██████   \n");
-    printf(" ██████████████████████████ \n");
-    printf("████████████████████████████\n");
-    printf("████████████████████████████\n");
-    printf("    ████████████████████    \n");
-    printf("    ████████████████████    \n");
-    printf("    ████████████████████    \n");
-    printf("\n");
-    printf("    ████████████████████    \n");
-    printf("    ████████████████████    \n");
-    printf("    ████████    ████████    \n");
-    printf("    ████████    ████████    \n");
-    printf("    ████████    ████████    \n");
-    printf("    ████████    ████████    \n");
-    printf("\n");
-    printf("    ████████    ████████    \n");
-    printf("████████████    ████████████\n");
-    printf("████████████    ████████████\n");
-    printf("████████████    ████████████\n");                                                            
-}    
-
-void inventario(struct SlotItem mochila[]){
-    printf("---Inventário---\n");
-    for(int i=0;i<15;i++){
-        printf("%d = ",i);
-        printf("%s",bibliotecaIDs(mochila[i].id));
-
-        if(mochila[i].id != -1){
-            printf(" (Quantidade: %d)",mochila[i].quantidade);
-        }
-        printf("\n");
-    }
-    printf("Pressione Enter para fechar \n");
-}
-
-int verificarMochila(struct SlotItem mochila[],int id_escolhido){
-    for(int i = 0;i<15;i++){
-        if(mochila[i].id == id_escolhido){
-            return 1;
-        }
-    }
-    return 0;
-}
-
+//Funções de crafting
 void bancoReceitas(struct Receita receitas[], int *quantidadeReceitas){
     int i = 0;
     receitas[i].itemDesejado = 101;
@@ -749,6 +810,24 @@ void bancoReceitas(struct Receita receitas[], int *quantidadeReceitas){
     receitas[i].id_um = 4;
     receitas[i].id_dois = 0;
     receitas[i].quantidade_dois = 0;
+    receitas[i].id_tres = 0;
+    receitas[i].quantidade_tres = 0;
+    i++;
+
+    receitas[i].itemDesejado = 104;
+    receitas[i].quantidade_um = 3;
+    receitas[i].id_um = 1;
+    receitas[i].id_dois = 0;
+    receitas[i].quantidade_dois = 0;
+    receitas[i].id_tres = 0;
+    receitas[i].quantidade_tres = 0;
+    i++;
+
+    receitas[i].itemDesejado = 105;
+    receitas[i].quantidade_um = 1;
+    receitas[i].id_um = 1;
+    receitas[i].id_dois = 4;
+    receitas[i].quantidade_dois = 2;
     receitas[i].id_tres = 0;
     receitas[i].quantidade_tres = 0;
     i++;
