@@ -5,10 +5,55 @@
 #include <ctype.h>
 #ifdef _WIN32
     #include <windows.h>
+    #include <conio.h>
 #else
     #include <unistd.h>
     #include <locale.h>
+    #include <termios.h>
+    #include <fcntl.h>
 #endif
+
+#ifndef _WIN32
+// Função para verificar se uma tecla foi pressionada no Linux (não-bloqueante)
+int kbhit(void) {
+    struct termios oldt, newt;
+    int ch;
+    int oldf;
+
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+
+    ch = getchar();
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    fcntl(STDIN_FILENO, F_SETFL, oldf);
+
+    if(ch != EOF) {
+        ungetc(ch, stdin);
+        return 1;
+    }
+
+    return 0;
+}
+
+// Função para pegar o caractere sem esperar Enter no Linux
+int getch(void) {
+    struct termios oldattr, newattr;
+    int ch;
+    tcgetattr( STDIN_FILENO, &oldattr );
+    newattr = oldattr;
+    newattr.c_lflag &= ~( ICANON | ECHO );
+    tcsetattr( STDIN_FILENO, TCSANOW, &newattr );
+    ch = getchar();
+    tcsetattr( STDIN_FILENO, TCSANOW, &oldattr );
+    return ch;
+}
+#endif
+
 #define TAM 30
 
 #define TAM_VILA 10
@@ -52,8 +97,7 @@ struct Inimigo{
     int y;
     int estadoAtual;
     int item;
-    int larguraLuta;
-    int alturaLuta;
+    int espacoLuta;
 };
 
 struct Vila{
@@ -299,6 +343,43 @@ void desenharUI(char **mundo,const char log[][MAX_TAM_MENSAGENS],int novasMensag
     printf("\n");
     printf("Digite um movimento estilo WASD || Para sair do jogo, digite X \n");
 }
+int movimentoConstanteJogador(char movimento,char **mundo,char **armazenamento,char jogador, int *x,int *y,int tamanho){
+    movimento = toupper(movimento);
+    switch(movimento){
+        case 'W':
+           if (*x > 0){
+            mundo[*x][*y] = armazenamento[*x][*y];
+            (*x)--;
+            mundo[*x][*y] = jogador;
+            return 2;
+           }
+           break;
+        case 'A':
+           if (*y > 0){
+            mundo[*x][*y] = armazenamento[*x][*y];
+            (*y)--;
+            mundo[*x][*y] = jogador;
+            return 3;
+           }
+           break;
+        case 'S':
+            if (*x < tamanho-1){
+             mundo[*x][*y] = armazenamento[*x][*y];
+             (*x)++;
+             mundo[*x][*y] = jogador;
+             return 4;
+            }
+            break;
+        case 'D':
+           if (*y < tamanho-1){
+            mundo[*x][*y] = armazenamento[*x][*y];
+            (*y)++;
+            mundo[*x][*y] = jogador;
+            return 5;
+           }
+           break;
+    } return 0;
+}
 void adicionarLog(char log[][MAX_TAM_MENSAGENS], const char* novaMensagem,int *cont){
     for(int i = 0;i<MAX_MENSAGENS-1;i++){
         strcpy(log[i],log[i+1]);
@@ -405,8 +486,7 @@ void zumbi(char **mundo,char **armazenamento, struct Inimigo inimigo1[],int *xzu
         inimigo1[*quantidade].x = *xzumbi;
         inimigo1[*quantidade].y = *yzumbi;
         inimigo1[*quantidade].estadoAtual = 1;
-        inimigo1[*quantidade].alturaLuta = 3;
-        inimigo1[*quantidade].larguraLuta = 6;
+        inimigo1[*quantidade].espacoLuta = 6;
         //solução usada pra caso o inimigo queira nascer no mesmo quadrado do jogar, seria bizarro lidar com um inimigo logo no primeiro segundo do jogo xD
         while(mundo[*xzumbi][*yzumbi] == mundo[*x][*y]){
             *xzumbi = rand() % TAM;
@@ -430,8 +510,7 @@ void esqueleto(char **mundo,char **armazenamento, struct Inimigo inimigo2[],int 
         inimigo2[*quantidade].x = *xesqueleto;
         inimigo2[*quantidade].y = *yesqueleto;
         inimigo2[*quantidade].estadoAtual = 1;
-        inimigo2[*quantidade].alturaLuta = 3;
-        inimigo2[*quantidade].larguraLuta = 6;
+        inimigo2[*quantidade].espacoLuta = 6;
         while(mundo[*xesqueleto][*yesqueleto] == mundo[*x][*y]){
             *xesqueleto = rand() % TAM;
             *yesqueleto = rand() % TAM;
@@ -440,34 +519,81 @@ void esqueleto(char **mundo,char **armazenamento, struct Inimigo inimigo2[],int 
         (*quantidade)++;
     }
 }
-void interfaceAtaque(struct Inimigo inimigo1[], int indice){
-    int larguraTotal = inimigo1[indice].larguraLuta;
-    int alturaTotal = inimigo1[indice].alturaLuta;
+void interfaceAtaque(char **coordenadasLuta, char **armazenamentoLuta,int *x, int *y,int espacoTotal,struct Inimigo inimigo1[],int *vida, int indice, int movimentoLivre){
     
-    int x_jogador = alturaTotal/2;
-    int y_jogador = 0;
-
-    int x_inimigo = alturaTotal/2;
-    int y_inimigo = larguraTotal-1;
     //int coordenadasJogador[x][y] = [2][2];
     //int coordenadasInimigo[x][y] = [2][4];
-    char **coordenadasLuta = (char **)malloc(alturaTotal * sizeof(char *));
-    char **armazenamentoLuta = (char **)malloc(alturaTotal * sizeof(char *));
+    gotoxy(0,0);
+    printf("Você está atacando um %s >:D \n",bibliotecaIDs(inimigo1[indice].id));
+    printf("Vida = %d \n",*vida);
+    for(int i = 0;i<espacoTotal;i++){
+        for(int j = 0;j<espacoTotal;j++){
+            imprimirComEmojis(coordenadasLuta[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+    
+    if(movimentoLivre){
+        while(kbhit()) getch();
+        time_t tempoInicial = time(NULL);
+        double limite = 5.0;
+        limparTela();
+        while(1){
+            time_t tempoUsado = time(NULL);
+            double tempoCorrido = difftime(tempoUsado,tempoInicial);
+            if(tempoCorrido >= limite){
+                break;
+            }
+
+            gotoxy(0,2);
+            for(int i = 0;i<espacoTotal;i++){
+                for(int j = 0;j<espacoTotal;j++){
+                    imprimirComEmojis(coordenadasLuta[i][j]);
+                }
+                printf("\n");
+            }
+            if(kbhit()){
+                char tecla = getch();
+                movimentoConstanteJogador(tecla,coordenadasLuta,armazenamentoLuta,'P',x,y,espacoTotal);
+            }
+            dormir(50);
+        }
+
+    }
+}
+void atacar(){
+    
+}
+void defender(){
+
+}
+int mainAtaque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,struct SlotItem mochila[]){
+    int espacoTotal = inimigo1[indice].espacoLuta;
+
+    int x_jogador = espacoTotal/2;
+    int y_jogador = 0;
+
+    int x_inimigo = espacoTotal/2;
+    int y_inimigo = espacoTotal-1;
+
+    char **coordenadasLuta = (char **)malloc(espacoTotal * sizeof(char *));
+    char **armazenamentoLuta = (char **)malloc(espacoTotal * sizeof(char *));
     if(coordenadasLuta == NULL || armazenamentoLuta == NULL){
         printf("Erro de alocação de memória \n");
-        return;
+        return -1;
     }
-    for(int i = 0;i<alturaTotal;i++){
-        coordenadasLuta[i] = (char *)calloc(larguraTotal,sizeof(char));
-        armazenamentoLuta[i] = (char *)calloc(larguraTotal,sizeof(char));
+    for(int i = 0;i<espacoTotal;i++){
+        coordenadasLuta[i] = (char *)calloc(espacoTotal,sizeof(char));
+        armazenamentoLuta[i] = (char *)calloc(espacoTotal,sizeof(char));
 
         if(coordenadasLuta[i] == NULL || armazenamentoLuta[i] == NULL){
         printf("Erro de alocação de memória \n");
-        return;
+        return -1;
     }
     }
-    for(int i = 0;i<alturaTotal;i++){
-        for(int j = 0;j<larguraTotal;j++){
+    for(int i = 0;i<espacoTotal;i++){
+        for(int j = 0;j<espacoTotal;j++){
             coordenadasLuta[i][j] = '|';
             armazenamentoLuta[i][j] = '|';
         }
@@ -476,49 +602,65 @@ void interfaceAtaque(struct Inimigo inimigo1[], int indice){
     coordenadasLuta[x_jogador][y_jogador] = 'P';
     coordenadasLuta[x_inimigo][y_inimigo] = 'E';
 
-    for(int i = 0;i<alturaTotal;i++){
-        for(int j = 0;j<larguraTotal;j++){
-            imprimirComEmojis(coordenadasLuta[i][j]);
-        }
-        printf("\n");
-    }
-    printf("\n");
+    
 
-    for(int i = 0;i<alturaTotal;i++){
-        free(coordenadasLuta[i]);
-        free(armazenamentoLuta[i]);
-    }
-    free(coordenadasLuta);
-    free(armazenamentoLuta);
-}
-int ataque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,struct SlotItem mochila[]){
     int vidaInimigoAntes = inimigo1[indice].vida;
     char comando;
-    comando = toupper(comando);
-    printf("Você está atacando um %s >:D \n",bibliotecaIDs(inimigo1[indice].id));
-    printf("Vida = %d \n",*vida);
-    interfaceAtaque(inimigo1,indice);
+    interfaceAtaque(coordenadasLuta,armazenamentoLuta,&x_jogador,&y_jogador,espacoTotal,inimigo1,vida,indice,0);
     while(vida !=0 && inimigo1[indice].vida !=0){
-        puts("[Z] Atacar | [X] Escapar\n");
+        puts("[A] Atacar | [D] Defesa | [M] Movimento Livre | [X] Escapar\n");
         scanf(" %c",&comando);
-        if(comando == 'x'){
+        comando = toupper(comando);
+        if(comando == 'X'){
             limparTela();
             printf("🤠 - Não tô muito afim de lutar agora \n");
             inimigo1[indice].vida = vidaInimigoAntes;
             dormir(1500);
+            for(int i = 0;i<espacoTotal;i++){
+                free(coordenadasLuta[i]);
+                free(armazenamentoLuta[i]);
+            }
+            free(coordenadasLuta);
+            free(armazenamentoLuta);
             return 2;
         }
-        if(comando == 'z'){
+        if(comando == 'A'){
+            atacar();
             inimigo1[indice].vida = inimigo1[indice].vida - ataque;
+            limparTela();
+            interfaceAtaque(coordenadasLuta,armazenamentoLuta,&x_jogador,&y_jogador,espacoTotal,inimigo1,vida,indice,0);
             printf("Você usou um ataque com %d de dano \n Vida atual do inimigo = %d \n\n", ataque, inimigo1[indice].vida);
             dormir(1000);
             *vida = *vida - inimigo1[indice].ataque;
             printf("O inimigo usou um ataque com %d de dano \n Sua vida atual = %d \n", inimigo1[indice].ataque, *vida);
+            dormir(1000);
+            limparTela();
+            interfaceAtaque(coordenadasLuta,armazenamentoLuta,&x_jogador,&y_jogador,espacoTotal,inimigo1,vida,indice,0);
+        }
+        if(comando == 'D'){
+            defender();
+        }
+        if(comando == 'M'){
+            interfaceAtaque(coordenadasLuta,armazenamentoLuta,&x_jogador,&y_jogador,espacoTotal,inimigo1,vida,indice,1);
+            limparTela();
+            interfaceAtaque(coordenadasLuta,armazenamentoLuta,&x_jogador,&y_jogador,espacoTotal,inimigo1,vida,indice,0);
         }
         if(*vida <= 0){
+            for(int i = 0;i<espacoTotal;i++){
+                free(coordenadasLuta[i]);
+                free(armazenamentoLuta[i]);
+            }
+            free(coordenadasLuta);
+            free(armazenamentoLuta);
             return 1;
         }
         else if(inimigo1[indice].vida <= 0){
+            for(int i = 0;i<espacoTotal;i++){
+                free(coordenadasLuta[i]);
+                free(armazenamentoLuta[i]);
+            }
+            free(coordenadasLuta);
+            free(armazenamentoLuta);
             adicionarItemInimigo(inimigo1,mochila,indice);
             return 0;
         }
@@ -800,6 +942,7 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
     }
     return 0;
 }
+
 void interfaceBiblioteca(){
     int x = 5;
     int y = 0;
@@ -1289,7 +1432,7 @@ int main(){
         for(int i = 0; i<quantidadeInimigos;i++){
             if(inimigo[i].estadoAtual && x == inimigo[i].x && y == inimigo[i].y){
                 limparTela();
-                int luta = ataque(&vidaInicialJogador,ataqueInicialJogador,inimigo,i,mochila);
+                int luta = mainAtaque(&vidaInicialJogador,ataqueInicialJogador,inimigo,i,mochila);
                 if(luta == 1){
                     printf("\nGame Over :<\n Reinicie o jogo! \n");
                     exit(0);
