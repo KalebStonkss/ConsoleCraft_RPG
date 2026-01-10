@@ -667,8 +667,52 @@ int atacar(struct SlotItem mochila[]){
     free(inventarioAtaqueLongo);
     return itemEscolhido;
 }
-void defender(){
+int defender(struct SlotItem mochila[]){
+    int escolha;
+    int itemEscolhido;
 
+    int *inventarioEscudo = (int *)calloc(5,sizeof(int));
+    int *inventarioCura = (int *)calloc(5,sizeof(int));
+
+    if(inventarioEscudo == NULL || inventarioCura == NULL){
+        printf("Erro de alocação de memória \n");
+        return -1;
+    }
+
+    for(int i = 0;i<5;i++){
+        if(verificarMochila(mochila,114+i)){
+            inventarioEscudo[i] = 114+i;
+        }
+    }
+    for(int i = 0;i<5;i++){
+        if(verificarMochila(mochila,119+i)){
+            inventarioCura[i] = 119+i;
+        }
+    }
+
+    printf("Digite o número do equipamento que deseja usar para defesa \n");
+    printf("Escudos \n");
+    for(int i = 0;i<5;i++){
+        printf("[%d] - %s \n",i,bibliotecaIDs(inventarioEscudo[i]));
+    }
+    printf("\nComida/Cura \n");
+    for(int i = 0;i<5;i++){
+        printf("[%d] - %s \n",i,bibliotecaIDs(inventarioCura[i]));
+    }
+    scanf("%d",&escolha);
+    if(escolha >= 0 && escolha < 5){
+        if(inventarioEscudo[escolha] >= 114){
+            itemEscolhido = inventarioEscudo[escolha];
+        }
+    }
+    if(escolha >=5 && escolha < 10){
+        if(inventarioCura[escolha - 5] >= 119){
+            itemEscolhido = inventarioCura[escolha - 5];
+        }
+    }
+    free(inventarioEscudo);
+    free(inventarioCura);
+    return itemEscolhido;
 }
 int mainAtaque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,struct SlotItem mochila[]){
     int espacoTotal = inimigo1[indice].espacoLuta;
@@ -753,7 +797,16 @@ int mainAtaque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,stru
             interfaceAtaque(coordenadasLuta,armazenamentoLuta,&x_jogador,&y_jogador,espacoTotal,inimigo1,vida,indice,0);
         }
         if(comando == 'D'){
-            defender();
+            int IdDefesa = defender(mochila);
+            switch(IdDefesa){
+                case 114:
+                    *vida = *vida + 20;
+                break;
+                
+                default:
+                    *vida = *vida + 0;
+                break;
+            }
         }
         if(comando == 'M'){
             interfaceAtaque(coordenadasLuta,armazenamentoLuta,&x_jogador,&y_jogador,espacoTotal,inimigo1,vida,indice,1);
@@ -1022,6 +1075,9 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
     return 0;
 }
 
+void interfaceFazenda(){
+    printf(" 👨‍🌾 - Olá! Cê entrou no melhor lugar pra comida da vila! Quer comprar alguma? \n");
+}
 void interfaceBiblioteca(){
     int x = 5;
     int y = 0;
@@ -1252,6 +1308,13 @@ void vila(int comando,int jogador_x, int jogador_y, struct Vila vilas[],int *ind
             limparTela();
             printf("👨 \n");
             printf("Olá, você parece ser novo por aqui!");
+            getchar();
+            getchar();
+            limparTela();
+        }
+        if(armazenamentoVila[x][y] == 'A'){
+            limparTela();
+            interfaceFazenda();
             getchar();
             getchar();
             limparTela();
