@@ -117,6 +117,12 @@ struct SlotItem{
     int quantidade;
 };
 
+struct Produto{
+    int id;
+    int quantidade;
+    int preco;
+};
+
 void limparTela(){
     #ifdef _WIN32
         system("cls");
@@ -459,6 +465,8 @@ const char* bibliotecaIDs(int id){
         case 3: return "Pedra";
         case 4: return "Ferro";
         case 5: return "Prisma Luminosa";
+        case 6: return "Trigo";
+        case 7: return "Maçã";
 
         //ID(101-500) -> Elementos Compostos (precisam de crafting para existir)
         case 101: return "Picareta de Madeira";
@@ -697,7 +705,7 @@ int defender(struct SlotItem mochila[]){
     }
     printf("\nComida/Cura \n");
     for(int i = 0;i<5;i++){
-        printf("[%d] - %s \n",i,bibliotecaIDs(inventarioCura[i]));
+        printf("[%d] - %s \n",i+5,bibliotecaIDs(inventarioCura[i]));
     }
     scanf("%d",&escolha);
     if(escolha >= 0 && escolha < 5){
@@ -797,16 +805,30 @@ int mainAtaque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,stru
             interfaceAtaque(coordenadasLuta,armazenamentoLuta,&x_jogador,&y_jogador,espacoTotal,inimigo1,vida,indice,0);
         }
         if(comando == 'D'){
-            int IdDefesa = defender(mochila);
-            switch(IdDefesa){
-                case 114:
-                    *vida = *vida + 20;
-                break;
+            int escolha;
+            limparTela();
+            interfaceAtaque(coordenadasLuta,armazenamentoLuta,&x_jogador,&y_jogador,espacoTotal,inimigo1,vida,indice,0);
+            printf("[0] - Escudo/Cura \n[1] - Observar\n[2] - Interagir\n");
+            scanf("%d",&escolha);
+            if(escolha == 0){
+                int IdDefesa = defender(mochila);
+                switch(IdDefesa){
+                    case 114:
+                        *vida = *vida + 20;
+                    break;
                 
-                default:
-                    *vida = *vida + 0;
-                break;
+                    default:
+                        *vida = *vida + 0;
+                     break;
+                }
             }
+            if(escolha == 1){
+                printf("Você está observando calmamente o inimigo\n");
+            }
+            if(escolha == 2){
+                printf("Você escolheu agir\n");
+            }
+            
         }
         if(comando == 'M'){
             interfaceAtaque(coordenadasLuta,armazenamentoLuta,&x_jogador,&y_jogador,espacoTotal,inimigo1,vida,indice,1);
@@ -1075,8 +1097,30 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
     return 0;
 }
 
-void interfaceFazenda(){
+void economiaJogo(struct SlotItem mochila[], int tipoAldeao){
+    int totalProdutos = rand() % 5;
+
+    struct Produto produto[totalProdutos];
+
+    int itensFazendeiro[2] = {6,7};
+
+    if(tipoAldeao == 1){
+        int randomItens = 0;
+        for(int i = 0; i < totalProdutos;i++){
+            randomItens = rand() % 2;
+            produto[i].id = itensFazendeiro[randomItens];
+            produto[i].quantidade = rand() % 5 + 1;
+            produto[i].preco = 10;
+        }
+        printf("\n        === Produtos ===\n--------------------------------");
+        for(int i = 0; i < totalProdutos;i++){
+            printf("\n [%d] |%s (%dx) -- 🌕 %d ouros|\n",i,bibliotecaIDs(produto[i].id),produto[i].quantidade,produto[i].preco);
+        }
+    }
+}
+void interfaceFazenda(struct SlotItem mochila[]){
     printf(" 👨‍🌾 - Olá! Cê entrou no melhor lugar pra comida da vila! Quer comprar alguma? \n");
+    economiaJogo(mochila,1);
 }
 void interfaceBiblioteca(){
     int x = 5;
@@ -1200,7 +1244,7 @@ void interfaceBiblioteca(){
     //{0,0,0,0,0,0,0,0,0,0}
 
 }
-void vila(int comando,int jogador_x, int jogador_y, struct Vila vilas[],int *indice_vilas){
+void vila(int comando,int jogador_x, int jogador_y, struct Vila vilas[],int *indice_vilas, struct SlotItem mochila[]){
     struct Vila *vilaAtual = NULL;
     int seedVila;
     int biblioteca = 0;
@@ -1314,7 +1358,7 @@ void vila(int comando,int jogador_x, int jogador_y, struct Vila vilas[],int *ind
         }
         if(armazenamentoVila[x][y] == 'A'){
             limparTela();
-            interfaceFazenda();
+            interfaceFazenda(mochila);
             getchar();
             getchar();
             limparTela();
@@ -1601,7 +1645,7 @@ int main(){
         
         //Sistema para detectar se o jogador vai entrar em uma vila, o jogo identifica se a posição do jogador é igual a posição da vila no mundo sem modificação(o mundo de "armazenamento")
         if(armazenamento[x][y] == 'V'){
-            vila(armazenarComando,x,y,vilas,&vilasEncontradas);
+            vila(armazenarComando,x,y,vilas,&vilasEncontradas,mochila);
         }
 
         if(mensagensPorTurno == 0){
