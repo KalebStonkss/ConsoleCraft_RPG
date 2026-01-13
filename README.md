@@ -21,6 +21,6 @@
   - 🤠 é o jogador, você :D
 ## Progresso atual do código
   - Bibliotecas estão pelas vilas! Busque conhecimento do jogo por essas livrarias (ainda haverá conteúdo nos livros)
-  - Não conseguiu encontrar o jogador? O jogo agora irá indicar onde ele está antes de começar para ajudar!
+  - Sistema de economia funcional
   - Você pode encontrar cavernas pelo mapa e minerar agora ⛏ 
   - Inventário junto com um sistema de crafting básico completo
