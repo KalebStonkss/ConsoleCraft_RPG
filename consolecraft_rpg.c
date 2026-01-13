@@ -123,6 +123,10 @@ struct Produto{
     int preco;
 };
 
+void limparBuffer(){
+    int c;
+    while((c = getchar()) != '\n' && c != EOF){ }
+}
 void limparTela(){
     #ifdef _WIN32
         system("cls");
@@ -208,6 +212,9 @@ void imprimirComEmojis(char caractere){
             break;
         case 'F':
             printf("%-4s", "🔩");
+            break;
+        case 'G':
+            printf("%-4s","🌕");
             break;
         case 'I':
             printf("%-4s", "🧓");
@@ -467,6 +474,7 @@ const char* bibliotecaIDs(int id){
         case 5: return "Prisma Luminosa";
         case 6: return "Trigo";
         case 7: return "Maçã";
+        case 8: return "Ouro";
 
         //ID(101-500) -> Elementos Compostos (precisam de crafting para existir)
         case 101: return "Picareta de Madeira";
@@ -634,7 +642,7 @@ void interfaceAtaque(char **coordenadasLuta, char **armazenamentoLuta,int *x, in
 }
 int atacar(struct SlotItem mochila[]){
     int escolha;
-    int itemEscolhido;
+    int itemEscolhido = -1;
     int *inventarioAtaqueCurto = (int *)calloc(5, sizeof(int));
     int *inventarioAtaqueLongo = (int *)calloc(5, sizeof(int));
     if(inventarioAtaqueCurto == NULL || inventarioAtaqueLongo == NULL){
@@ -677,7 +685,7 @@ int atacar(struct SlotItem mochila[]){
 }
 int defender(struct SlotItem mochila[]){
     int escolha;
-    int itemEscolhido;
+    int itemEscolhido = -1;
 
     int *inventarioEscudo = (int *)calloc(5,sizeof(int));
     int *inventarioCura = (int *)calloc(5,sizeof(int));
@@ -1099,9 +1107,26 @@ int movimentoJogador(char **mundo,char **armazenamento,char jogador,int *x,int *
 
 void economiaJogo(struct SlotItem mochila[], int tipoAldeao){
     int totalProdutos = rand() % 5;
+    if(totalProdutos == 0){
+        printf("Sigh, sinto muito jovem, mas saqueadores roubaram nossos produtos e estamos sem nada no momento\n");
+        return;
+    }
 
     struct Produto produto[totalProdutos];
 
+    int escolha = -1;
+    int itemEscolhido = -1;
+    int totalMoedasJogador;
+    if(verificarMochila(mochila,8)){
+        for(int i = 0;i<15;i++){
+            if(mochila[i].id == 8){
+                totalMoedasJogador = mochila[i].quantidade;
+            }
+        }
+    }
+    else{
+        totalMoedasJogador = 0;
+    }
     int itensFazendeiro[2] = {6,7};
 
     if(tipoAldeao == 1){
@@ -1112,10 +1137,59 @@ void economiaJogo(struct SlotItem mochila[], int tipoAldeao){
             produto[i].quantidade = rand() % 5 + 1;
             produto[i].preco = 10;
         }
-        printf("\n        === Produtos ===\n--------------------------------");
-        for(int i = 0; i < totalProdutos;i++){
-            printf("\n [%d] |%s (%dx) -- 🌕 %d ouros|\n",i,bibliotecaIDs(produto[i].id),produto[i].quantidade,produto[i].preco);
+        
+    }
+    printf("\n        === Produtos ===\n--------------------------------");
+    for(int i = 0; i < totalProdutos;i++){
+        printf("\n [%d] |%s (%dx) -- 🌕 %d ouros|\n",i,bibliotecaIDs(produto[i].id),produto[i].quantidade,produto[i].preco);
+    }
+    scanf("%d",&escolha);
+    if(escolha >=0 && escolha < totalProdutos){
+        if(totalMoedasJogador >= produto[escolha].preco){
+            itemEscolhido = produto[escolha].id;
+            int cont = 0;
+
+            while(cont < produto[escolha].quantidade){
+                adicionarItemMundo(mochila,itemEscolhido);
+                cont++;
+            }
+            for(int i = 0;i<15;i++){
+                if(mochila[i].id == 8 && mochila[i].quantidade > 0){
+                    mochila[i].quantidade = mochila[i].quantidade - produto[escolha].preco;
+                    totalMoedasJogador -= produto[escolha].preco;
+                    break;
+                }
+                if(mochila[i].id == 8 && mochila[i].quantidade <= 0){
+                    mochila[i].quantidade = 0;
+                    mochila[i].id = -1;
+                    totalMoedasJogador = 0;
+                    break;
+                }
+            }
+
+            produto[escolha].id = -1;
+            produto[escolha].quantidade = 0;
+            produto[escolha].preco = 0;
+
+            for(int i = escolha; i < totalProdutos-1;i++){
+                produto[i].id = produto[i+1].id;
+                produto[i].quantidade = produto[i+1].quantidade;
+                produto[i].preco = produto[i+1].preco;
+            }
+
+            totalProdutos--;
+            limparTela();
+            printf("👨‍🌾 - Obrigado pela compra! Volte sempre\n");
         }
+        else{
+            limparTela();
+            printf("👨‍🌾 - Hmm, parece que você não tem moeda suficiente pra comprar isso não\n");
+        }
+    }
+    
+    printf("\n        === Produtos ===\n--------------------------------");
+    for(int i = 0; i < totalProdutos;i++){
+        printf("\n [%d] |%s (%dx) -- 🌕 %d ouros|\n",i,bibliotecaIDs(produto[i].id),produto[i].quantidade,produto[i].preco);
     }
 }
 void interfaceFazenda(struct SlotItem mochila[]){
@@ -1399,7 +1473,10 @@ void minerar(int jogador_x, int jogador_y, struct Caverna cavernas[],int *indice
         for(int i = 0; i<TAM_CAVE;i++){
             for(int j = 0;j<TAM_CAVE;j++){
                 seedCaverna = rand() % 100;
-                if(seedCaverna < 8){
+                if(seedCaverna < 5){
+                    cavernaAtual->mapaCaverna[i][j] = 'G';
+                }
+                else if(seedCaverna < 13){
                     cavernaAtual->mapaCaverna[i][j] = 'F';                    
                 }
                 else if(seedCaverna < 100){
@@ -1447,6 +1524,15 @@ void minerar(int jogador_x, int jogador_y, struct Caverna cavernas[],int *indice
         }
         int x_ant = x;
         int y_ant = y;
+        if(armazenamentoCaverna[x][y] == 'G' && verificarMochila(mochila,101) == 1){
+            adicionarItemMundo(mochila,8);
+            armazenamentoCaverna[x][y] = '|';
+            printf("Você minerou 1 ouro! \n");
+        }
+        else if(armazenamentoCaverna[x][y] == 'G' && verificarMochila(mochila,101) == 0){
+            printf("Parece que precisa de uma picareta melhor para isso \n");
+        }
+        
         if(armazenamentoCaverna[x][y] == 'F' && verificarMochila(mochila,101) == 1){
             adicionarItemMundo(mochila,4);
             armazenamentoCaverna[x][y] = '|';
@@ -1540,7 +1626,7 @@ int main(){
         printf("\n");
     }
     printf("Elementos do jogo: \n");
-    printf("Montanha = 🗻 | Água = 💧 | Terra = 🟩 | Jogador = 🤠 \n");
+    printf("Montanha = 🗻 | Água = 🟦 | Terra = 🟩 | Jogador = 🤠 \n");
     printf("______________________________________________\n");
     printf("WASD para movimento, X para sair, para outros comandos digite ? \n\n");
     printf("Pressione qualquer tecla para continuar: ");
@@ -1567,6 +1653,7 @@ int main(){
             inventario(mochila);
             getchar();
             getchar();
+            continue;
         }
         if(armazenarComando == 7){
             limparTela();
@@ -1574,6 +1661,7 @@ int main(){
             getchar();
             getchar();
             limparTela();
+            continue;
         }
         if(armazenarComando == 8){
             if(mapaMascaraMineracao[x][y] == 1){
@@ -1589,6 +1677,7 @@ int main(){
             getchar();
             getchar();
             limparTela();
+            continue;
         }
         if(armazenarComando == 10){
             limparTela();
@@ -1596,15 +1685,18 @@ int main(){
             getchar();
             getchar();
             limparTela();
+            continue;
         }
         if(armazenarComando == 98){
             limparTela();
             ajuda();
             getchar();
             getchar();
+            continue;
         }
         if(armazenarComando == 99){
             adicionarLog(logMensagens,"Movimento inválido, use WASD \n",&mensagensPorTurno);
+            continue;
         }
         if(armazenamento[x][y] == '.' && chance < 25){
             adicionarItemMundo(mochila,1);
