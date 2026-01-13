@@ -472,16 +472,27 @@ const char* bibliotecaIDs(int id){
         case 3: return "Pedra";
         case 4: return "Ferro";
         case 5: return "Prisma Luminosa";
-        case 6: return "Trigo";
-        case 7: return "Maçã";
-        case 8: return "Ouro";
+        case 6: return "Ouro";
+        case 7: return "Trigo";
+        case 8: return "Maçã";
+        case 9: return "Cana de Açúcar";
 
-        //ID(101-500) -> Elementos Compostos (precisam de crafting para existir)
+        //ID(101-500) -> Elementos Compostos (precisam de crafting/compra para existir)
         case 101: return "Picareta de Madeira";
         case 102: return "Picareta de Ferro";
         case 103: return "Balde (vazio)";
         case 104: return "Espada de Madeira";
         case 105: return "Espada de Ferro";
+        case 114: return "Escudo de Madeira";
+        case 115: return "Escudo de Ferro";
+        case 116: return "Escudo de Diamante";
+        case 117: return "Escudo Refletor";
+        case 118: return "Super Hélice";
+        case 119: return "Bolo";
+        case 120: return "Pão";
+        case 121: return "Torta de Maçã";
+        case 122: return "Poção de Cura(pequeno)";
+        case 123: return "Poção de Cura(grande)";
 
         //ID(501-550) -> Inimigos/Personagens
         case 501: return "Zumbi";
@@ -701,8 +712,25 @@ int defender(struct SlotItem mochila[]){
         }
     }
     for(int i = 0;i<5;i++){
+        int cont = 0;
         if(verificarMochila(mochila,119+i)){
             inventarioCura[i] = 119+i;
+            cont++;
+        }
+        else if(verificarMochila(mochila,7)){
+            inventarioCura[i] = 7;
+            cont++;
+        }
+        else if(verificarMochila(mochila,8)){
+            inventarioCura[i] = 8;
+            cont++;
+        }
+        else if(verificarMochila(mochila,9)){
+            inventarioCura[i] = 9;
+            cont++;
+        }
+        if(cont == 5){
+            break;
         }
     }
 
@@ -722,7 +750,7 @@ int defender(struct SlotItem mochila[]){
         }
     }
     if(escolha >=5 && escolha < 10){
-        if(inventarioCura[escolha - 5] >= 119){
+        if(inventarioCura[escolha - 5] >= 119 || inventarioCura[escolha - 5] == 7 || inventarioCura[escolha - 5] == 8 || inventarioCura[escolha - 5] == 9){
             itemEscolhido = inventarioCura[escolha - 5];
         }
     }
@@ -821,10 +849,22 @@ int mainAtaque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,stru
             if(escolha == 0){
                 int IdDefesa = defender(mochila);
                 switch(IdDefesa){
-                    case 114:
+                    case 119:
                         *vida = *vida + 20;
                     break;
-                
+                    case 120:
+                        *vida = *vida + 3;
+                    break;
+                    case 121:
+                        *vida = *vida + 8;
+                    break;
+                    case 122:
+                        *vida = *vida + 15;
+                    break;
+                    case 123:
+                        *vida = *vida + 30;
+                    break;
+
                     default:
                         *vida = *vida + 0;
                      break;
@@ -1117,9 +1157,9 @@ void economiaJogo(struct SlotItem mochila[], int tipoAldeao){
     int escolha = -1;
     int itemEscolhido = -1;
     int totalMoedasJogador;
-    if(verificarMochila(mochila,8)){
+    if(verificarMochila(mochila,6)){
         for(int i = 0;i<15;i++){
-            if(mochila[i].id == 8){
+            if(mochila[i].id == 6){
                 totalMoedasJogador = mochila[i].quantidade;
             }
         }
@@ -1127,12 +1167,12 @@ void economiaJogo(struct SlotItem mochila[], int tipoAldeao){
     else{
         totalMoedasJogador = 0;
     }
-    int itensFazendeiro[2] = {6,7};
+    int itensFazendeiro[6] = {7,8,9,119,120,121};
 
     if(tipoAldeao == 1){
         int randomItens = 0;
         for(int i = 0; i < totalProdutos;i++){
-            randomItens = rand() % 2;
+            randomItens = rand() % 6;
             produto[i].id = itensFazendeiro[randomItens];
             produto[i].quantidade = rand() % 5 + 1;
             produto[i].preco = 10;
@@ -1154,12 +1194,12 @@ void economiaJogo(struct SlotItem mochila[], int tipoAldeao){
                 cont++;
             }
             for(int i = 0;i<15;i++){
-                if(mochila[i].id == 8 && mochila[i].quantidade > 0){
+                if(mochila[i].id == 6 && mochila[i].quantidade > 0){
                     mochila[i].quantidade = mochila[i].quantidade - produto[escolha].preco;
                     totalMoedasJogador -= produto[escolha].preco;
                     break;
                 }
-                if(mochila[i].id == 8 && mochila[i].quantidade <= 0){
+                if(mochila[i].id == 6 && mochila[i].quantidade <= 0){
                     mochila[i].quantidade = 0;
                     mochila[i].id = -1;
                     totalMoedasJogador = 0;
@@ -1525,7 +1565,7 @@ void minerar(int jogador_x, int jogador_y, struct Caverna cavernas[],int *indice
         int x_ant = x;
         int y_ant = y;
         if(armazenamentoCaverna[x][y] == 'G' && verificarMochila(mochila,101) == 1){
-            adicionarItemMundo(mochila,8);
+            adicionarItemMundo(mochila,6);
             armazenamentoCaverna[x][y] = '|';
             printf("Você minerou 1 ouro! \n");
         }
