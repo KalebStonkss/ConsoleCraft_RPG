@@ -3,6 +3,7 @@
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 #ifdef _WIN32
     #include <windows.h>
     #include <conio.h>
@@ -476,6 +477,7 @@ const char* bibliotecaIDs(int id){
         case 7: return "Trigo";
         case 8: return "Maçã";
         case 9: return "Cana de Açúcar";
+        case 10: return "Diamante";
 
         //ID(101-500) -> Elementos Compostos (precisam de crafting/compra para existir)
         case 101: return "Picareta de Madeira";
@@ -483,11 +485,19 @@ const char* bibliotecaIDs(int id){
         case 103: return "Balde (vazio)";
         case 104: return "Espada de Madeira";
         case 105: return "Espada de Ferro";
+        case 106: return "Espada de Pedra";
+        case 107: return "Espada de Diamante";
+        case 108: return "";
+        case 109: return "Arco e Flecha";
+        case 110: return "";
+        case 111: return "";
+        case 112: return "";
+        case 113: return "";
         case 114: return "Escudo de Madeira";
         case 115: return "Escudo de Ferro";
         case 116: return "Escudo de Diamante";
         case 117: return "Escudo Refletor";
-        case 118: return "Super Hélice";
+        case 118: return "Ursinho de Pelúcia";
         case 119: return "Bolo";
         case 120: return "Pão";
         case 121: return "Torta de Maçã";
@@ -816,18 +826,41 @@ int mainAtaque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,stru
         }
         if(comando == 'A'){
             int IdAtaque = atacar(mochila);
-            switch(IdAtaque){
-                case 104:
-                    ataque = 20;
-                break;
+            double distanciaJogadorInimigo = sqrt(pow(x_jogador - x_inimigo,2) + pow(y_jogador - y_inimigo,2));
+            if(IdAtaque > 103 && IdAtaque < 109 && distanciaJogadorInimigo <= 1.3){
+                switch(IdAtaque){
+                    case 104:
+                        ataque = 20;
+                    break;
 
-                case 105:
-                    ataque = 25;
-                break;
+                    case 105:
+                        ataque = 25;
+                    break;
 
-                default:
-                    ataque = 15;
-                break;   
+                    default:
+                        ataque = 15;
+                    break;   
+                }
+            }
+            if(IdAtaque > 103 && IdAtaque < 109 && distanciaJogadorInimigo > 1.3){
+                limparTela();
+                interfaceAtaque(coordenadasLuta,armazenamentoLuta,&x_jogador,&y_jogador,espacoTotal,inimigo1,vida,indice,0);
+                printf("Você até tentou atacar, mas o inimigo estava muito longe pra alcançar ele \n");
+                continue;
+            }
+            if(IdAtaque > 109 && IdAtaque < 115 && distanciaJogadorInimigo > 1.3){
+                limparTela();
+                interfaceAtaque(coordenadasLuta,armazenamentoLuta,&x_jogador,&y_jogador,espacoTotal,inimigo1,vida,indice,0);
+                printf("--Vai ter interface de mira no futuro aqui--\n");
+                continue;
+            }
+            if(IdAtaque > 109 && IdAtaque < 115 && distanciaJogadorInimigo <= 1.3){
+                limparTela();
+                interfaceAtaque(coordenadasLuta,armazenamentoLuta,&x_jogador,&y_jogador,espacoTotal,inimigo1,vida,indice,0);
+                printf("O inimigo teve bons reflexos e te atacou antes que começasse a mirar!\n");
+                dormir(1000);
+                *vida = *vida - inimigo1[indice].ataque;
+                continue;
             }
             inimigo1[indice].vida = inimigo1[indice].vida - ataque;
             limparTela();
@@ -868,6 +901,9 @@ int mainAtaque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,stru
                     default:
                         *vida = *vida + 0;
                      break;
+                }
+                if(*vida > 100){
+                    *vida = 100;
                 }
             }
             if(escolha == 1){
