@@ -11,7 +11,7 @@
   - Depois, digite "./consolecraft.exe"(sem as aspas) e dê enter para o jogo começar
 ### Linux
   - **Requisitos Mínimos**: GCC instalado no computador
-  - No Terminal, digite "gcc -o consolecraft consolecraft_rpg.c"(sem as aspas), dê enter
+  - No Terminal, digite "gcc -o consolecraft consolecraft_rpg.c -lm"(sem as aspas), dê enter
   - Depois, digite "./consolecraft"(sem as aspas) e dê enter para o jogo começar
 ## Elementos do Jogo
   -  🗻 significa montanha
