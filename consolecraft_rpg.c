@@ -1271,7 +1271,8 @@ void economiaJogo(struct SlotItem mochila[], int tipoAldeao){
     }
     int limpador;
     while ((limpador = getchar()) != '\n' && limpador != EOF);
-    while(1){    
+    while(1){
+        printf("\n🌕 Moedas disponíveis: %d\n",totalMoedasJogador);    
         printf("\n        === Produtos ===\n--------------------------------");
         for(int i = 0; i < totalProdutos;i++){
             printf("\n [%d] |%s (%dx) -- 🌕 %d ouros|\n",i,bibliotecaIDs(produto[i].id),produto[i].quantidade,produto[i].preco);
