@@ -20,7 +20,7 @@
   - 🏠 significa uma vila/casa
   - 🤠 é o jogador, você :D
 ## Progresso atual do código
+  - Sistema de mineração completo 
   - Bibliotecas estão pelas vilas! Busque conhecimento do jogo por essas livrarias (ainda haverá conteúdo nos livros)
-  - Sistema de economia funcional
-  - Você pode encontrar cavernas pelo mapa e minerar agora ⛏ 
+  - Sistema de economia funcional 
   - Inventário junto com um sistema de crafting básico completo
