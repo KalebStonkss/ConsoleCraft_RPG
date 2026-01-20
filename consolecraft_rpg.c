@@ -236,6 +236,9 @@ void imprimirComEmojis(char caractere){
             printf("%-4s", "🏫");
             printf(ANSI_RESET);
             break;
+        case 'D':
+            printf("%-4s","💎");
+            break;
         case '0':
             printf(ANSI_BG_CINZA_ESCURO "%-4s" ANSI_RESET, "📕");
             break;
@@ -478,16 +481,17 @@ const char* bibliotecaIDs(int id){
         case 8: return "Maçã";
         case 9: return "Cana de Açúcar";
         case 10: return "Diamante";
+        case 11: return "Linha";
 
         //ID(101-500) -> Elementos Compostos (precisam de crafting/compra para existir)
-        case 101: return "Picareta de Madeira";
-        case 102: return "Picareta de Ferro";
-        case 103: return "Balde (vazio)";
-        case 104: return "Espada de Madeira";
-        case 105: return "Espada de Ferro";
-        case 106: return "Espada de Pedra";
-        case 107: return "Espada de Diamante";
-        case 108: return "";
+        case 101: return "Picareta de Madeira";//Craftável
+        case 102: return "Picareta de Ferro";//Craftável
+        case 103: return "Balde (vazio)";//Craftável
+        case 104: return "Espada de Madeira";//Craftável
+        case 105: return "Espada de Ferro";//Craftável
+        case 106: return "Espada de Pedra";//Craftável
+        case 107: return "Espada de Diamante";//Craftável
+        case 108: return "Foice Gigante";//Craftável
         case 109: return "Arco e Flecha";
         case 110: return "";
         case 111: return "";
@@ -503,6 +507,8 @@ const char* bibliotecaIDs(int id){
         case 121: return "Torta de Maçã";
         case 122: return "Poção de Cura(pequeno)";
         case 123: return "Poção de Cura(grande)";
+        case 124: return "Picareta de Diamante";//Craftável
+        case 125: return "Picareta de Pedra";//Craftável
 
         //ID(501-550) -> Inimigos/Personagens
         case 501: return "Zumbi";
@@ -862,6 +868,7 @@ int mainAtaque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,stru
                 *vida = *vida - inimigo1[indice].ataque;
                 continue;
             }
+
             inimigo1[indice].vida = inimigo1[indice].vida - ataque;
             limparTela();
             interfaceAtaque(coordenadasLuta,armazenamentoLuta,&x_jogador,&y_jogador,espacoTotal,inimigo1,vida,indice,0);
@@ -987,6 +994,51 @@ void bancoReceitas(struct Receita receitas[], int *quantidadeReceitas){
     receitas[i].id_um = 1;
     receitas[i].id_dois = 4;
     receitas[i].quantidade_dois = 2;
+    receitas[i].id_tres = 0;
+    receitas[i].quantidade_tres = 0;
+    i++;
+
+    receitas[i].itemDesejado = 106;
+    receitas[i].quantidade_um = 1;
+    receitas[i].id_um = 1;
+    receitas[i].id_dois = 3;
+    receitas[i].quantidade_dois = 2;
+    receitas[i].id_tres = 0;
+    receitas[i].quantidade_tres = 0;
+    i++;
+
+    receitas[i].itemDesejado = 107;
+    receitas[i].quantidade_um = 1;
+    receitas[i].id_um = 1;
+    receitas[i].id_dois = 10;
+    receitas[i].quantidade_dois = 2;
+    receitas[i].id_tres = 0;
+    receitas[i].quantidade_tres = 0;
+    i++;
+
+    receitas[i].itemDesejado = 108;
+    receitas[i].quantidade_um = 3;
+    receitas[i].id_um = 1;
+    receitas[i].id_dois = 4;
+    receitas[i].quantidade_dois = 6;
+    receitas[i].id_tres = 0;
+    receitas[i].quantidade_tres = 0;
+    i++;
+
+    receitas[i].itemDesejado = 124;
+    receitas[i].quantidade_um = 2;
+    receitas[i].id_um = 1;
+    receitas[i].id_dois = 10;
+    receitas[i].quantidade_dois = 3;
+    receitas[i].id_tres = 0;
+    receitas[i].quantidade_tres = 0;
+    i++;
+
+    receitas[i].itemDesejado = 125;
+    receitas[i].quantidade_um = 2;
+    receitas[i].id_um = 1;
+    receitas[i].id_dois = 3;
+    receitas[i].quantidade_dois = 3;
     receitas[i].id_tres = 0;
     receitas[i].quantidade_tres = 0;
     i++;
@@ -1185,6 +1237,8 @@ void economiaJogo(struct SlotItem mochila[], int tipoAldeao){
     int totalProdutos = rand() % 5;
     if(totalProdutos == 0){
         printf("Sigh, sinto muito jovem, mas saqueadores roubaram nossos produtos e estamos sem nada no momento\n");
+        getchar();
+        getchar();
         return;
     }
 
@@ -1215,58 +1269,84 @@ void economiaJogo(struct SlotItem mochila[], int tipoAldeao){
         }
         
     }
-    printf("\n        === Produtos ===\n--------------------------------");
-    for(int i = 0; i < totalProdutos;i++){
-        printf("\n [%d] |%s (%dx) -- 🌕 %d ouros|\n",i,bibliotecaIDs(produto[i].id),produto[i].quantidade,produto[i].preco);
-    }
-    scanf("%d",&escolha);
-    if(escolha >=0 && escolha < totalProdutos){
-        if(totalMoedasJogador >= produto[escolha].preco){
-            itemEscolhido = produto[escolha].id;
-            int cont = 0;
+    int limpador;
+    while ((limpador = getchar()) != '\n' && limpador != EOF);
+    while(1){    
+        printf("\n        === Produtos ===\n--------------------------------");
+        for(int i = 0; i < totalProdutos;i++){
+            printf("\n [%d] |%s (%dx) -- 🌕 %d ouros|\n",i,bibliotecaIDs(produto[i].id),produto[i].quantidade,produto[i].preco);
+        }
+        int scanear = fgetc(stdin);
 
-            while(cont < produto[escolha].quantidade){
-                adicionarItemMundo(mochila,itemEscolhido);
-                cont++;
-            }
-            for(int i = 0;i<15;i++){
-                if(mochila[i].id == 6 && mochila[i].quantidade > 0){
-                    mochila[i].quantidade = mochila[i].quantidade - produto[escolha].preco;
-                    totalMoedasJogador -= produto[escolha].preco;
-                    break;
-                }
-                if(mochila[i].id == 6 && mochila[i].quantidade <= 0){
-                    mochila[i].quantidade = 0;
-                    mochila[i].id = -1;
-                    totalMoedasJogador = 0;
-                    break;
-                }
-            }
+        if(scanear == '\n'){
+            break;
+        }
+        ungetc(scanear,stdin);
 
-            produto[escolha].id = -1;
-            produto[escolha].quantidade = 0;
-            produto[escolha].preco = 0;
-
-            for(int i = escolha; i < totalProdutos-1;i++){
-                produto[i].id = produto[i+1].id;
-                produto[i].quantidade = produto[i+1].quantidade;
-                produto[i].preco = produto[i+1].preco;
-            }
-
-            totalProdutos--;
+        if(scanf("%d",&escolha) != 1){
+            int c;
+            while((c = getchar()) != '\n' && c != EOF);
             limparTela();
-            printf("👨‍🌾 - Obrigado pela compra! Volte sempre\n");
+            printf("\n");
+            continue;
+        }
+        int c;
+        while((c = getchar()) != '\n' && c != EOF);
+
+        if(escolha >=0 && escolha < totalProdutos){
+            if(totalMoedasJogador >= produto[escolha].preco){
+                itemEscolhido = produto[escolha].id;
+                int cont = 0;
+
+                while(cont < produto[escolha].quantidade){
+                    adicionarItemMundo(mochila,itemEscolhido);
+                    cont++;
+                }
+                for(int i = 0;i<15;i++){
+                    if(mochila[i].id == 6 && mochila[i].quantidade > 0){
+                        mochila[i].quantidade = mochila[i].quantidade - produto[escolha].preco;
+                        totalMoedasJogador -= produto[escolha].preco;
+                        break;
+                    }
+                    if(mochila[i].id == 6 && mochila[i].quantidade <= 0){
+                        mochila[i].quantidade = 0;
+                        mochila[i].id = -1;
+                        totalMoedasJogador = 0;
+                        break;
+                    }
+                }
+
+                produto[escolha].id = -1;
+                produto[escolha].quantidade = 0;
+                produto[escolha].preco = 0;
+
+                for(int i = escolha; i < totalProdutos-1;i++){
+                    produto[i].id = produto[i+1].id;
+                    produto[i].quantidade = produto[i+1].quantidade;
+                    produto[i].preco = produto[i+1].preco;
+                }
+
+                totalProdutos--;
+                limparTela();
+                printf("👨‍🌾 - Obrigado pela compra! Volte sempre\n");
+                continue;
+            }
+            else{
+                limparTela();
+                printf("👨‍🌾 - Hmm, parece que você não tem moeda suficiente pra comprar isso não\n");
+                continue;
+            }
         }
         else{
             limparTela();
-            printf("👨‍🌾 - Hmm, parece que você não tem moeda suficiente pra comprar isso não\n");
+            printf("\n");
+            continue;
         }
-    }
-    
-    printf("\n        === Produtos ===\n--------------------------------");
-    for(int i = 0; i < totalProdutos;i++){
-        printf("\n [%d] |%s (%dx) -- 🌕 %d ouros|\n",i,bibliotecaIDs(produto[i].id),produto[i].quantidade,produto[i].preco);
-    }
+        printf("\n        === Produtos ===\n--------------------------------");
+        for(int i = 0; i < totalProdutos;i++){
+            printf("\n [%d] |%s (%dx) -- 🌕 %d ouros|\n",i,bibliotecaIDs(produto[i].id),produto[i].quantidade,produto[i].preco);
+        }
+    } 
 }
 void interfaceFazenda(struct SlotItem mochila[]){
     printf(" 👨‍🌾 - Olá! Cê entrou no melhor lugar pra comida da vila! Quer comprar alguma? \n");
@@ -1509,8 +1589,6 @@ void vila(int comando,int jogador_x, int jogador_y, struct Vila vilas[],int *ind
         if(armazenamentoVila[x][y] == 'A'){
             limparTela();
             interfaceFazenda(mochila);
-            getchar();
-            getchar();
             limparTela();
         }
         if(armazenamentoVila[x][y] == 'B'){
@@ -1549,10 +1627,13 @@ void minerar(int jogador_x, int jogador_y, struct Caverna cavernas[],int *indice
         for(int i = 0; i<TAM_CAVE;i++){
             for(int j = 0;j<TAM_CAVE;j++){
                 seedCaverna = rand() % 100;
-                if(seedCaverna < 5){
+                if(seedCaverna < 2){
+                    cavernaAtual->mapaCaverna[i][j] = 'D';
+                }
+                else if(seedCaverna < 6){
                     cavernaAtual->mapaCaverna[i][j] = 'G';
                 }
-                else if(seedCaverna < 13){
+                else if(seedCaverna < 14){
                     cavernaAtual->mapaCaverna[i][j] = 'F';                    
                 }
                 else if(seedCaverna < 100){
@@ -1589,6 +1670,9 @@ void minerar(int jogador_x, int jogador_y, struct Caverna cavernas[],int *indice
         }
     }
     coordenadasCaverna[x][y] = 'P';
+
+    char mensagemNotificacao[100] = " ";
+    char bufferTeclado[100];
     while(1){
         limparTela();
         
@@ -1598,28 +1682,70 @@ void minerar(int jogador_x, int jogador_y, struct Caverna cavernas[],int *indice
             }
             printf(" \n");
         }
+        if(strlen(mensagemNotificacao) > 0){
+            printf("\n%s \n",mensagemNotificacao);
+        }
+        else{
+            printf("\n");
+        }
         int x_ant = x;
         int y_ant = y;
-        if(armazenamentoCaverna[x][y] == 'G' && verificarMochila(mochila,101) == 1){
-            adicionarItemMundo(mochila,6);
-            armazenamentoCaverna[x][y] = '|';
-            printf("Você minerou 1 ouro! \n");
+
+        if (fgets(bufferTeclado, sizeof(bufferTeclado), stdin) != NULL) {
+            if(bufferTeclado[0] == '\n'){
+                strcpy(mensagemNotificacao, "");
+                continue;
+            }
+            
+            ungetc(bufferTeclado[0], stdin);
         }
-        else if(armazenamentoCaverna[x][y] == 'G' && verificarMochila(mochila,101) == 0){
-            printf("Parece que precisa de uma picareta melhor para isso \n");
-        }
+
+        int armazenarComando = movimentoJogador(coordenadasCaverna,armazenamentoCaverna,'P',&x,&y,TAM_CAVE);
+        strcpy(mensagemNotificacao,"");
+
+        if(armazenarComando == 8){
+            if(armazenamentoCaverna[x][y] == '|' && (verificarMochila(mochila,102) || verificarMochila(mochila,101) || verificarMochila(mochila,124) || verificarMochila(mochila,125)) == 1){
+                adicionarItemMundo(mochila,3);
+                strcpy(mensagemNotificacao,"Você minerou 1 pedra! \n");
+                continue;
+            }
+            else if(armazenamentoCaverna[x][y] == '|' && (verificarMochila(mochila,102) || verificarMochila(mochila,101) || verificarMochila(mochila,124) || verificarMochila(mochila,125)) == 0){
+                strcpy(mensagemNotificacao,"Você não tem picareta em mãos \n");
+                continue;
+            }
+            if(armazenamentoCaverna[x][y] == 'G' && (verificarMochila(mochila,102) || verificarMochila(mochila,124)) == 1){
+                adicionarItemMundo(mochila,6);
+                armazenamentoCaverna[x][y] = '|';
+                strcpy(mensagemNotificacao,"Você minerou 1 ouro! \n");
+                continue;
+            }
+            else if(armazenamentoCaverna[x][y] == 'G' && (verificarMochila(mochila,102) || verificarMochila(mochila,124)) == 0){
+                strcpy(mensagemNotificacao,"Parece que precisa de uma picareta melhor para isso \n");
+                continue;
+            }
         
-        if(armazenamentoCaverna[x][y] == 'F' && verificarMochila(mochila,101) == 1){
-            adicionarItemMundo(mochila,4);
-            armazenamentoCaverna[x][y] = '|';
-            printf("Você minerou 1 ferro! \n");
-        }
-        else if(armazenamentoCaverna[x][y] == 'F' && verificarMochila(mochila,101) == 0){
-            printf("Parece que precisa de uma picareta melhor para isso \n");
-        }
+            if(armazenamentoCaverna[x][y] == 'F' && (verificarMochila(mochila,102) || verificarMochila(mochila,124) || verificarMochila(mochila,125)) == 1){
+                adicionarItemMundo(mochila,4);
+                armazenamentoCaverna[x][y] = '|';
+                strcpy(mensagemNotificacao,"Você minerou 1 ferro! \n");
+                continue;
+            }
+            else if(armazenamentoCaverna[x][y] == 'F' && (verificarMochila(mochila,102) || verificarMochila(mochila,124) || verificarMochila(mochila,125)) == 0){
+                strcpy(mensagemNotificacao,"Parece que precisa de uma picareta melhor para isso \n");
+                continue;
+            }
 
-        movimentoJogador(coordenadasCaverna,armazenamentoCaverna,'P',&x,&y,TAM_CAVE);
-
+            if(armazenamentoCaverna[x][y] == 'D' && (verificarMochila(mochila,102) || verificarMochila(mochila,124)) == 1){
+                adicionarItemMundo(mochila,10);
+                armazenamentoCaverna[x][y] = '|';
+                strcpy(mensagemNotificacao,"Você minerou 1 diamante! \n");
+                continue;
+            }
+            else if(armazenamentoCaverna[x][y] == 'D' && (verificarMochila(mochila,102) || verificarMochila(mochila,124)) == 0){
+                strcpy(mensagemNotificacao,"Parece que precisa de uma picareta melhor para isso \n");
+                continue;
+            }
+        }
         if(x_ant == x && y_ant == y){
             if(x == 0 || x == TAM_CAVE-1 || y == 0 || y == TAM_CAVE-1){
                 limparTela();
