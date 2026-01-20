@@ -205,6 +205,7 @@ void imprimirComEmojis(char caractere){
             break;
         case 'Z':
         case 'E':
+        case 'S':
             printf(ANSI_BG_VERDE "%-4s" ANSI_RESET, "💀");
             break;
         case 'V':
@@ -492,7 +493,7 @@ const char* bibliotecaIDs(int id){
         case 106: return "Espada de Pedra";//Craftável
         case 107: return "Espada de Diamante";//Craftável
         case 108: return "Foice Gigante";//Craftável
-        case 109: return "Arco e Flecha";
+        case 109: return "Arco e Flecha";//Craftável
         case 110: return "";
         case 111: return "";
         case 112: return "";
@@ -513,6 +514,7 @@ const char* bibliotecaIDs(int id){
         //ID(501-550) -> Inimigos/Personagens
         case 501: return "Zumbi";
         case 502: return "Esqueleto";
+        case 503: return "Aranha";
 
         //Caso desconhecido/genérico
         default: return "?";
@@ -621,6 +623,28 @@ void esqueleto(char **mundo,char **armazenamento, struct Inimigo inimigo2[],int 
             *yesqueleto = rand() % TAM;
         }
         mundo[*xesqueleto][*yesqueleto] = esqueleto;
+        (*quantidade)++;
+    }
+}
+void aranha(char **mundo,char **armazenamento, struct Inimigo inimigo3[],int *xaranha, int *yaranha,int *quantidade,int *x,int *y){
+    char aranha = 'S';
+    int quantidadeSpawn = rand() % 8 + 2;
+    for(int i = 0;i < quantidadeSpawn;i++){
+        *xaranha = rand() % TAM;
+        *yaranha = rand() % TAM;
+        inimigo3[*quantidade].id = 503;
+        inimigo3[*quantidade].item = 11;
+        inimigo3[*quantidade].vida = 25;
+        inimigo3[*quantidade].ataque = 4;
+        inimigo3[*quantidade].x = *xaranha;
+        inimigo3[*quantidade].y = *yaranha;
+        inimigo3[*quantidade].estadoAtual = 1;
+        inimigo3[*quantidade].espacoLuta = 8;
+        while(mundo[*xaranha][*yaranha] == mundo[*x][*y]){
+            *xaranha = rand() % TAM;
+            *yaranha = rand() % TAM;
+        }
+        mundo[*xaranha][*yaranha] = aranha;
         (*quantidade)++;
     }
 }
@@ -854,13 +878,13 @@ int mainAtaque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,stru
                 printf("Você até tentou atacar, mas o inimigo estava muito longe pra alcançar ele \n");
                 continue;
             }
-            if(IdAtaque > 109 && IdAtaque < 115 && distanciaJogadorInimigo > 1.3){
+            if(IdAtaque > 108 && IdAtaque < 115 && distanciaJogadorInimigo > 1.3){
                 limparTela();
                 interfaceAtaque(coordenadasLuta,armazenamentoLuta,&x_jogador,&y_jogador,espacoTotal,inimigo1,vida,indice,0);
                 printf("--Vai ter interface de mira no futuro aqui--\n");
                 continue;
             }
-            if(IdAtaque > 109 && IdAtaque < 115 && distanciaJogadorInimigo <= 1.3){
+            if(IdAtaque > 108 && IdAtaque < 115 && distanciaJogadorInimigo <= 1.3){
                 limparTela();
                 interfaceAtaque(coordenadasLuta,armazenamentoLuta,&x_jogador,&y_jogador,espacoTotal,inimigo1,vida,indice,0);
                 printf("O inimigo teve bons reflexos e te atacou antes que começasse a mirar!\n");
@@ -1023,6 +1047,15 @@ void bancoReceitas(struct Receita receitas[], int *quantidadeReceitas){
     receitas[i].quantidade_dois = 6;
     receitas[i].id_tres = 0;
     receitas[i].quantidade_tres = 0;
+    i++;
+
+    receitas[i].itemDesejado = 109;
+    receitas[i].quantidade_um = 3;
+    receitas[i].id_um = 11;
+    receitas[i].id_dois = 1;
+    receitas[i].quantidade_dois = 4;
+    receitas[i].id_tres = 4;
+    receitas[i].quantidade_tres = 1;
     i++;
 
     receitas[i].itemDesejado = 124;
@@ -1817,10 +1850,12 @@ int main(){
     int x,y;
     int xzumbi,yzumbi;
     int xesqueleto,yesqueleto;
+    int xaranha,yaranha;
     criarMundo(*pseed,mundo,armazenamento,mapaMascaraMineracao);
     jogador(mundo,armazenamento,&x,&y);
     zumbi(mundo,armazenamento,inimigo,&xzumbi,&yzumbi,&quantidadeInimigos,&x,&y);
     esqueleto(mundo,armazenamento,inimigo,&xesqueleto,&yesqueleto,&quantidadeInimigos,&x,&y);
+    aranha(mundo,armazenamento,inimigo,&xaranha,&yaranha,&quantidadeInimigos,&x,&y);
     printf("Mensagem do jogo                                            |\n____________________________________________________________\n");
     for(int i = 0;i<TAM;i++){
         for(int j=0;j<TAM;j++){
