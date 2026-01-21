@@ -98,6 +98,7 @@ struct Inimigo{
     int y;
     int estadoAtual;
     int item;
+    int quantidadeItem;
     int espacoLuta;
 };
 
@@ -431,11 +432,16 @@ void adicionarItemCrafting(struct SlotItem mochila[],int indice){
         }
     }
 }
-void adicionarItemInimigo(struct Inimigo inimigo1[], struct SlotItem mochila[],int indice){
+void adicionarItemInimigo(struct Inimigo inimigo1[], struct SlotItem mochila[],int indice,int quantidadeItems){
     int item_escolhido = inimigo1[indice].item;
+    int cont = 0;
+
     for(int i=0;i<15;i++){
         if(mochila[i].id == item_escolhido){
-            mochila[i].quantidade++;
+            while(cont < quantidadeItems){
+                mochila[i].quantidade++;
+                cont++;
+            }
             return;
         }
     }
@@ -443,7 +449,7 @@ void adicionarItemInimigo(struct Inimigo inimigo1[], struct SlotItem mochila[],i
     for(int i=0;i<15;i++){
         if(mochila[i].id == -1){         
             mochila[i].id = item_escolhido;
-            mochila[i].quantidade = 1;
+            mochila[i].quantidade = quantidadeItems;
             return;
         }
     }
@@ -594,6 +600,7 @@ void zumbi(char **mundo,char **armazenamento, struct Inimigo inimigo1[],int *xzu
         inimigo1[*quantidade].y = *yzumbi;
         inimigo1[*quantidade].estadoAtual = 1;
         inimigo1[*quantidade].espacoLuta = 6;
+        inimigo1[*quantidade].quantidadeItem = 1;
         //solução usada pra caso o inimigo queira nascer no mesmo quadrado do jogar, seria bizarro lidar com um inimigo logo no primeiro segundo do jogo xD
         while(mundo[*xzumbi][*yzumbi] == mundo[*x][*y]){
             *xzumbi = rand() % TAM;
@@ -618,6 +625,7 @@ void esqueleto(char **mundo,char **armazenamento, struct Inimigo inimigo2[],int 
         inimigo2[*quantidade].y = *yesqueleto;
         inimigo2[*quantidade].estadoAtual = 1;
         inimigo2[*quantidade].espacoLuta = 6;
+        inimigo2[*quantidade].quantidadeItem = 1;
         while(mundo[*xesqueleto][*yesqueleto] == mundo[*x][*y]){
             *xesqueleto = rand() % TAM;
             *yesqueleto = rand() % TAM;
@@ -640,6 +648,7 @@ void aranha(char **mundo,char **armazenamento, struct Inimigo inimigo3[],int *xa
         inimigo3[*quantidade].y = *yaranha;
         inimigo3[*quantidade].estadoAtual = 1;
         inimigo3[*quantidade].espacoLuta = 8;
+        inimigo3[*quantidade].quantidadeItem = 2;
         while(mundo[*xaranha][*yaranha] == mundo[*x][*y]){
             *xaranha = rand() % TAM;
             *yaranha = rand() % TAM;
@@ -690,6 +699,69 @@ void interfaceAtaque(char **coordenadasLuta, char **armazenamentoLuta,int *x, in
         }
 
     }
+}
+void mira(char **coordenadasLuta, char **armazenamentoLuta,int espacoTotal,struct Inimigo inimigo1[],int *vida, int indice, int movimentoLivre){
+    int mira[11] = {3,0,0,1,1,2,1,1,0,0,0};
+    int armazenamentoMira[11] = {0,0,0,1,1,2,1,1,0,0,0};
+    int pontoAtual = 0;
+    int direcaoDireita = 1;
+
+    int tempX = 0;
+    int tempY = 0;
+    time_t tempoInicial = time(NULL);
+    double limite = 10.0;
+
+    hideCursor();
+    interfaceAtaque(coordenadasLuta,armazenamentoLuta,&tempX,&tempY,espacoTotal,inimigo1,vida,indice,0);
+    while(1){
+        time_t tempoUsado = time(NULL);
+        double tempoCorrido = difftime(tempoUsado,tempoInicial);
+        if(tempoCorrido >= limite){
+            break;
+        }
+        hideCursor();
+        gotoxy(0,espacoTotal+4);
+        for(int i = 0;i<11;i++){
+            switch(mira[i]){
+                case 0:
+                    printf("🟥");
+                break;
+
+                case 1:
+                    printf("🟨");
+                break;
+                    
+                case 2:
+                    printf("🟩");
+                break;
+    
+                case 3:
+                    printf("🔘");
+                break;
+            }
+        }
+        printf("\n");
+        mira[pontoAtual] = armazenamentoMira[pontoAtual];
+
+        if(pontoAtual < 11 && direcaoDireita == 1){
+            pontoAtual++;
+        }
+        if(pontoAtual == 11){
+            direcaoDireita = 0;
+            pontoAtual--;
+        }
+        if(pontoAtual < 11 && direcaoDireita == 0){
+            pontoAtual--;
+        }
+        if(pontoAtual == 0 && direcaoDireita == 0){
+            direcaoDireita = 1;
+        }
+
+        mira[pontoAtual] = 3;
+
+        dormir(50);
+    }
+    //printf("🔘🟥🟥🟨🟨🟩🟨🟨🟥🟥🟥");
 }
 int atacar(struct SlotItem mochila[]){
     int escolha;
@@ -818,9 +890,9 @@ int mainAtaque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,stru
         armazenamentoLuta[i] = (char *)calloc(espacoTotal,sizeof(char));
 
         if(coordenadasLuta[i] == NULL || armazenamentoLuta[i] == NULL){
-        printf("Erro de alocação de memória \n");
-        return -1;
-    }
+            printf("Erro de alocação de memória \n");
+            return -1;
+        }
     }
     for(int i = 0;i<espacoTotal;i++){
         for(int j = 0;j<espacoTotal;j++){
@@ -881,7 +953,7 @@ int mainAtaque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,stru
             if(IdAtaque > 108 && IdAtaque < 115 && distanciaJogadorInimigo > 1.3){
                 limparTela();
                 interfaceAtaque(coordenadasLuta,armazenamentoLuta,&x_jogador,&y_jogador,espacoTotal,inimigo1,vida,indice,0);
-                printf("--Vai ter interface de mira no futuro aqui--\n");
+                mira(coordenadasLuta,armazenamentoLuta,espacoTotal,inimigo1,vida,indice,0);
                 continue;
             }
             if(IdAtaque > 108 && IdAtaque < 115 && distanciaJogadorInimigo <= 1.3){
@@ -966,7 +1038,7 @@ int mainAtaque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,stru
             }
             free(coordenadasLuta);
             free(armazenamentoLuta);
-            adicionarItemInimigo(inimigo1,mochila,indice);
+            adicionarItemInimigo(inimigo1,mochila,indice,inimigo1[indice].quantidadeItem);
             return 0;
         }
     }
