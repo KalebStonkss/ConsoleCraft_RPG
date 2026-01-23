@@ -700,7 +700,7 @@ void interfaceAtaque(char **coordenadasLuta, char **armazenamentoLuta,int *x, in
 
     }
 }
-void mira(char **coordenadasLuta, char **armazenamentoLuta,int espacoTotal,struct Inimigo inimigo1[],int *vida, int indice, int movimentoLivre){
+int mira(char **coordenadasLuta, char **armazenamentoLuta,int espacoTotal,struct Inimigo inimigo1[],int *vida, int indice, int movimentoLivre){
     int mira[11] = {3,0,0,1,1,2,1,1,0,0,0};
     int armazenamentoMira[11] = {0,0,0,1,1,2,1,1,0,0,0};
     int pontoAtual = 0;
@@ -714,6 +714,7 @@ void mira(char **coordenadasLuta, char **armazenamentoLuta,int espacoTotal,struc
     hideCursor();
     interfaceAtaque(coordenadasLuta,armazenamentoLuta,&tempX,&tempY,espacoTotal,inimigo1,vida,indice,0);
     while(1){
+        char pontoEscolhido;
         time_t tempoUsado = time(NULL);
         double tempoCorrido = difftime(tempoUsado,tempoInicial);
         if(tempoCorrido >= limite){
@@ -741,16 +742,25 @@ void mira(char **coordenadasLuta, char **armazenamentoLuta,int espacoTotal,struc
             }
         }
         printf("\n");
+
+        if(kbhit()){
+            pontoEscolhido = getch();
+            if(pontoEscolhido == '\n' || pontoEscolhido == '\r'){
+                return armazenamentoMira[pontoAtual];
+                break;
+            }
+        }
+
         mira[pontoAtual] = armazenamentoMira[pontoAtual];
 
-        if(pontoAtual < 11 && direcaoDireita == 1){
+        if(pontoAtual < 10 && direcaoDireita == 1){
             pontoAtual++;
         }
-        if(pontoAtual == 11){
+        if(pontoAtual == 10){
             direcaoDireita = 0;
             pontoAtual--;
         }
-        if(pontoAtual < 11 && direcaoDireita == 0){
+        if(pontoAtual < 10 && direcaoDireita == 0){
             pontoAtual--;
         }
         if(pontoAtual == 0 && direcaoDireita == 0){
@@ -761,6 +771,7 @@ void mira(char **coordenadasLuta, char **armazenamentoLuta,int espacoTotal,struc
 
         dormir(50);
     }
+    return 0;
     //printf("🔘🟥🟥🟨🟨🟩🟨🟨🟥🟥🟥");
 }
 int atacar(struct SlotItem mochila[]){
@@ -953,8 +964,24 @@ int mainAtaque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,stru
             if(IdAtaque > 108 && IdAtaque < 115 && distanciaJogadorInimigo > 1.3){
                 limparTela();
                 interfaceAtaque(coordenadasLuta,armazenamentoLuta,&x_jogador,&y_jogador,espacoTotal,inimigo1,vida,indice,0);
-                mira(coordenadasLuta,armazenamentoLuta,espacoTotal,inimigo1,vida,indice,0);
-                continue;
+                int tipoMira = mira(coordenadasLuta,armazenamentoLuta,espacoTotal,inimigo1,vida,indice,0);
+                switch(tipoMira){
+                    case 2:
+                        ataque = 40;
+                    break;
+                    
+                    case 1:
+                        ataque = 20;
+                    break;
+
+                    case 0:
+                        ataque = 0;
+                    break;
+
+                    default:
+                        ataque = 0;
+                    break;
+                }
             }
             if(IdAtaque > 108 && IdAtaque < 115 && distanciaJogadorInimigo <= 1.3){
                 limparTela();
@@ -1221,7 +1248,7 @@ void removerItemsCrafting(struct SlotItem mochila[],struct Receita receita_escol
     }
 }
 void crafting(struct SlotItem mochila[], struct Receita receitas[],int totalReceitas){
-    int id_escolhido;
+    int id_escolhido = -1;
     int podeFabricar[100] = {0};
     printf("Você está no sistema de crafting\n");
     inventario(mochila);
@@ -1250,6 +1277,7 @@ void crafting(struct SlotItem mochila[], struct Receita receitas[],int totalRece
     printf("_______________________\n");
     puts("Digite o número da receita que deseja craftar: ");
     scanf("%d",&id_escolhido);
+    limparBuffer();
     if(id_escolhido < 0 || id_escolhido >= totalReceitas){
         printf("Sua escolha não está na lista de receitas \n");
         return;
@@ -1968,7 +1996,6 @@ int main(){
         if(armazenarComando == 7){
             limparTela();
             crafting(mochila,receitas,quantidadeReceitas);
-            getchar();
             getchar();
             limparTela();
             continue;
