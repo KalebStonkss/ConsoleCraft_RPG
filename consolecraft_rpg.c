@@ -290,7 +290,7 @@ void destacarJogador(char **mundo, int jogador_x,int jogador_y){
     dormir(3000);
 }
 //função para criar o mundo inicial
-void criarMundo(int seed, char **mundo,char **armazenamento, int **mapaMascaraMineracao){
+void criarMundo(int seed, char **mundo,char **armazenamento, int **mapaMascaraMineracao, int **mapaDungeons){
     srand(time(NULL));
     for(int i = 0; i<TAM;i++){
         for(int j = 0;j<TAM;j++){
@@ -298,31 +298,38 @@ void criarMundo(int seed, char **mundo,char **armazenamento, int **mapaMascaraMi
             if(seed < 2){
                 mundo[i][j] = 'V';
                 armazenamento[i][j] = mundo[i][j];
+
                 mapaMascaraMineracao[i][j] = 0;
+                mapaDungeons[i][j] = 0;
             }
             else if(seed < 10){
                 mundo[i][j] = '^';
                 armazenamento[i][j] = mundo[i][j];
                 if(rand() % 100 < 75){
                     mapaMascaraMineracao[i][j] = 1;
+                    mapaDungeons[i][j] = 0;
                 }
                 else {
                     mapaMascaraMineracao[i][j] = 0;
+                    mapaDungeons[i][j] = 1;
                 }
             }
             else if(seed < 40){
                 mundo[i][j] = '~';
                 armazenamento[i][j] = mundo[i][j];
                 mapaMascaraMineracao[i][j] = 0;
+                mapaDungeons[i][j] = 0;
             }
             else if(seed < 100){
                 mundo[i][j] = '.';
                 armazenamento[i][j] = mundo[i][j];
                 if(rand() % 100 < 50){
                     mapaMascaraMineracao[i][j] = 1;
+                    mapaDungeons[i][j] = 0;
                 }
                 else{
                     mapaMascaraMineracao[i][j] = 0;
+                    mapaDungeons[i][j] = 0;
                 }
             }
         }
@@ -713,6 +720,7 @@ int mira(char **coordenadasLuta, char **armazenamentoLuta,int espacoTotal,struct
 
     hideCursor();
     interfaceAtaque(coordenadasLuta,armazenamentoLuta,&tempX,&tempY,espacoTotal,inimigo1,vida,indice,0);
+    printf("Digite [Enter] para calibrar sua mira \n");
     while(1){
         char pontoEscolhido;
         time_t tempoUsado = time(NULL);
@@ -1550,6 +1558,7 @@ void interfaceBiblioteca(){
 
     while(1){
         limparTela();
+        
         for(int i = 0;i<10;i++){
             for(int j = 0;j<10;j++){
                 imprimirComEmojis(coordenadasBiblioteca[i][j]);
@@ -1559,6 +1568,11 @@ void interfaceBiblioteca(){
 
         int x_ant = x;
         int y_ant = y;
+
+        if(armazenamentoBiblioteca[x][y] == '!'){
+            printf("Olá viajante! Bem vindo a biblioteca da vila, o que você deseja?\n");
+            getchar();
+        }
 
         movimentoJogador(coordenadasBiblioteca,armazenamentoBiblioteca,'P',&x,&y,10);
 
@@ -1947,11 +1961,16 @@ int main(){
     for(int i = 0;i<TAM;i++){
         mapaMascaraMineracao[i] = (int *)calloc(TAM, sizeof(int));
     }
+
+    int **mapaDungeons = (int **)malloc(TAM * sizeof(int *));
+    for(int i = 0;i<TAM;i++){
+        mapaDungeons[i] = (int *)calloc(TAM, sizeof(int));
+    }
     int x,y;
     int xzumbi,yzumbi;
     int xesqueleto,yesqueleto;
     int xaranha,yaranha;
-    criarMundo(*pseed,mundo,armazenamento,mapaMascaraMineracao);
+    criarMundo(*pseed,mundo,armazenamento,mapaMascaraMineracao,mapaDungeons);
     jogador(mundo,armazenamento,&x,&y);
     zumbi(mundo,armazenamento,inimigo,&xzumbi,&yzumbi,&quantidadeInimigos,&x,&y);
     esqueleto(mundo,armazenamento,inimigo,&xesqueleto,&yesqueleto,&quantidadeInimigos,&x,&y);
@@ -2003,6 +2022,14 @@ int main(){
         if(armazenarComando == 8){
             if(mapaMascaraMineracao[x][y] == 1){
                 minerar(x,y,cavernas,&cavernasEncontradas,mochila);
+                continue;
+            }
+            if(mapaDungeons[x][y] == 1){
+                limparTela();
+                printf("Aqui haverá dungeons em breve! \n");
+                getchar();
+                getchar();
+                continue;
             }
             else{
                 adicionarLog(logMensagens,"Você tentou minerar, mas nada encontrou. \n",&mensagensPorTurno);
@@ -2085,7 +2112,11 @@ int main(){
     for(int i = 0;i<TAM;i++){
         free(mundo[i]);
         free(armazenamento[i]);
+        free(mapaMascaraMineracao[i]);
+        free(mapaDungeons[i]);
     }
     free(mundo);
     free(armazenamento);
+    free(mapaMascaraMineracao);
+    free(mapaDungeons);
 }
