@@ -63,6 +63,9 @@ int getch(void) {
 #define TAM_CAVE 10
 #define MAX_CAVERNAS_ENCONTRADAS 15
 
+#define TAM_DUNGEON 30
+#define MAX_DUNGEONS_ENCONTRADAS 10
+
 #define MAX_MENSAGENS 20
 #define MAX_TAM_MENSAGENS 80
 
@@ -112,6 +115,13 @@ struct Caverna{
     int x;
     int y;
     char mapaCaverna[TAM_CAVE][TAM_CAVE];
+};
+
+struct Dungeon{
+    int x;
+    int y;
+    int salas;
+    char mapaDungeon[TAM_DUNGEON][TAM_DUNGEON];
 };
 
 struct SlotItem{
@@ -1911,6 +1921,86 @@ void minerar(int jogador_x, int jogador_y, struct Caverna cavernas[],int *indice
     free(coordenadasCaverna);
     free(armazenamentoCaverna);
 }
+
+void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice_dungeons, struct SlotItem mochila[], struct Inimigo inimigo[]){
+    struct Dungeon *dungeonAtual = NULL;
+
+    for(int i = 0;i< *indice_dungeons;i++){
+        if(dungeons[i].x == jogador_x && dungeons[i].y == jogador_y){
+            dungeonAtual = &dungeons[i];
+            break;
+        }
+    }
+
+    if(dungeonAtual == NULL){
+        dungeonAtual = &dungeons[*indice_dungeons];
+
+        dungeonAtual->x = jogador_x;
+        dungeonAtual->y = jogador_y;
+
+        for(int i = 0;i<TAM_DUNGEON;i++){
+            for(int j = 0;j<TAM_DUNGEON;j++){
+                dungeonAtual->mapaDungeon[i][j] = '#';
+            }
+        }
+
+        dungeonAtual->salas = rand() % 10 + 3;
+        int cont = 0;
+
+        while(cont < dungeonAtual->salas){
+            int largura = rand() % 5 + 3;
+            int altura = rand() % 5 + 3;
+            
+            int x_Sala = rand() % (TAM_DUNGEON - largura);
+            int y_Sala = rand() % (TAM_DUNGEON - altura);
+            for(int i = x_Sala;i<x_Sala + largura;i++){
+                for(int j = y_Sala;j<y_Sala + altura;j++){
+                    dungeonAtual->mapaDungeon[i][j] = '.';
+                }
+            }
+            cont++;
+        }
+        (*indice_dungeons)++;
+    }
+
+    char **coordenadasDungeon = (char **)malloc(TAM_DUNGEON * sizeof(char *));
+    char **armazenamentoDungeon = (char **)malloc(TAM_DUNGEON * sizeof(char *));
+
+    if(coordenadasDungeon == NULL || armazenamentoDungeon == NULL){
+        printf("Erro de alocação de memória \n");
+        return;
+    }
+    for(int i = 0;i<TAM_DUNGEON;i++){
+        coordenadasDungeon[i] = (char *)calloc(TAM_DUNGEON, sizeof(char));
+        armazenamentoDungeon[i] = (char *)calloc(TAM_DUNGEON, sizeof(char));
+
+        if(coordenadasDungeon[i] == NULL || armazenamentoDungeon[i] == NULL){
+            printf("Erro de alocação de memória \n");
+            return;
+        }
+    }
+
+    for(int i = 0;i<TAM_DUNGEON;i++){
+        for(int j = 0;j<TAM_DUNGEON;j++){
+            coordenadasDungeon[i][j] = dungeonAtual->mapaDungeon[i][j];
+            armazenamentoDungeon[i][j] = dungeonAtual->mapaDungeon[i][j];
+        }
+    }
+
+    for(int i=0;i<TAM_DUNGEON;i++){
+        for(int j=0;j<TAM_DUNGEON;j++){
+            printf("%c",coordenadasDungeon[i][j]);
+        }
+        printf(" \n");
+    }
+
+    for(int i = 0;i<TAM_DUNGEON;i++){
+        free(coordenadasDungeon[i]);
+        free(armazenamentoDungeon[i]);
+    }
+    free(coordenadasDungeon);
+    free(armazenamentoDungeon);
+}
 int main(){
     limparTela();
     #ifdef _WIN32
@@ -1931,6 +2021,9 @@ int main(){
 
     struct Caverna cavernas[MAX_CAVERNAS_ENCONTRADAS];
     int cavernasEncontradas = 0;
+
+    struct Dungeon dungeons[MAX_DUNGEONS_ENCONTRADAS];
+    int dungeonsEncontradas = 0;
 
     struct SlotItem mochila[15];
     for(int i =0;i<15;i++){
@@ -2026,7 +2119,8 @@ int main(){
             }
             if(mapaDungeons[x][y] == 1){
                 limparTela();
-                printf("Aqui haverá dungeons em breve! \n");
+                dungeon(x,y,dungeons,&dungeonsEncontradas,mochila,inimigo);
+                printf("\nAqui haverá dungeons em breve! \n");
                 getchar();
                 getchar();
                 continue;
