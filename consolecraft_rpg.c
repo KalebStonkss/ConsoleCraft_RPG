@@ -211,8 +211,14 @@ void imprimirComEmojis(char caractere){
         case '!':
             printf("%-4s", "🔘");
             break;
+        case ' ':
+            printf("  ");
+            break;
         case '@':
             printf(ANSI_BG_LARANJA_ESCURO "%-4s" ANSI_RESET, "🛑");
+            break;
+        case '#':
+            printf("%-4s","🟫");
             break;
         case 'Z':
         case 'E':
@@ -1768,6 +1774,7 @@ void vila(int comando,int jogador_x, int jogador_y, struct Vila vilas[],int *ind
 void minerar(int jogador_x, int jogador_y, struct Caverna cavernas[],int *indice_cavernas,struct SlotItem mochila[]){
     struct Caverna *cavernaAtual = NULL;
     int seedCaverna;
+    int primeiraVezCaverna = 0;
 
     for(int i = 0; i< *indice_cavernas;i++){
         if(cavernas[i].x == jogador_x && cavernas[i].y == jogador_y){
@@ -1800,7 +1807,7 @@ void minerar(int jogador_x, int jogador_y, struct Caverna cavernas[],int *indice
             }
         }
         (*indice_cavernas)++;
-        printf("Você encontrou uma caverna nova! \n");
+        primeiraVezCaverna = 1;
     }
 
     int x = TAM_CAVE/2;
@@ -1830,80 +1837,91 @@ void minerar(int jogador_x, int jogador_y, struct Caverna cavernas[],int *indice
     coordenadasCaverna[x][y] = 'P';
 
     char mensagemNotificacao[100] = " ";
-    char bufferTeclado[100];
+    int mostrarMensagem = 0;
+    int cont = 0;
     while(1){
-        limparTela();
-        
+        gotoxy(0,0);
+        if(primeiraVezCaverna == 1 && cont == 0){
+            strcpy(mensagemNotificacao,"Você encontrou uma caverna nova! \n");
+            mostrarMensagem = 1;
+        }
+
+        gotoxy(0,1);
         for(int i=0;i<TAM_CAVE;i++){
             for(int j=0;j<TAM_CAVE;j++){
                 imprimirComEmojis(coordenadasCaverna[i][j]);
             }
             printf(" \n");
         }
-        if(strlen(mensagemNotificacao) > 0){
-            printf("\n%s \n",mensagemNotificacao);
+        if(mostrarMensagem){
+            printf("%-60s\n",mensagemNotificacao);
+            mostrarMensagem = 0;
         }
         else{
-            printf("\n");
+            printf("%-60s\n"," ");
         }
+
         int x_ant = x;
         int y_ant = y;
 
-        if (fgets(bufferTeclado, sizeof(bufferTeclado), stdin) != NULL) {
-            if(bufferTeclado[0] == '\n'){
-                strcpy(mensagemNotificacao, "");
-                continue;
-            }
-            
-            ungetc(bufferTeclado[0], stdin);
-        }
-
+        gotoxy(0,TAM_CAVE + 2);
+        printf("\033[J");
+        fflush(stdout);
         int armazenarComando = movimentoJogador(coordenadasCaverna,armazenamentoCaverna,'P',&x,&y,TAM_CAVE);
+        cont++;
         strcpy(mensagemNotificacao,"");
 
         if(armazenarComando == 8){
+            mostrarMensagem = 1;
             if(armazenamentoCaverna[x][y] == '|' && (verificarMochila(mochila,102) || verificarMochila(mochila,101) || verificarMochila(mochila,124) || verificarMochila(mochila,125)) == 1){
                 adicionarItemMundo(mochila,3);
-                strcpy(mensagemNotificacao,"Você minerou 1 pedra! \n");
-                continue;
+                strcpy(mensagemNotificacao,"Você minerou 1 pedra! ");
             }
             else if(armazenamentoCaverna[x][y] == '|' && (verificarMochila(mochila,102) || verificarMochila(mochila,101) || verificarMochila(mochila,124) || verificarMochila(mochila,125)) == 0){
-                strcpy(mensagemNotificacao,"Você não tem picareta em mãos \n");
-                continue;
+                strcpy(mensagemNotificacao,"Você não tem picareta em mãos ");
             }
             if(armazenamentoCaverna[x][y] == 'G' && (verificarMochila(mochila,102) || verificarMochila(mochila,124)) == 1){
                 adicionarItemMundo(mochila,6);
                 armazenamentoCaverna[x][y] = '|';
-                strcpy(mensagemNotificacao,"Você minerou 1 ouro! \n");
-                continue;
+                strcpy(mensagemNotificacao,"Você minerou 1 ouro! ");
             }
             else if(armazenamentoCaverna[x][y] == 'G' && (verificarMochila(mochila,102) || verificarMochila(mochila,124)) == 0){
-                strcpy(mensagemNotificacao,"Parece que precisa de uma picareta melhor para isso \n");
-                continue;
+                strcpy(mensagemNotificacao,"Parece que precisa de uma picareta melhor para isso ");
             }
         
             if(armazenamentoCaverna[x][y] == 'F' && (verificarMochila(mochila,102) || verificarMochila(mochila,124) || verificarMochila(mochila,125)) == 1){
                 adicionarItemMundo(mochila,4);
                 armazenamentoCaverna[x][y] = '|';
-                strcpy(mensagemNotificacao,"Você minerou 1 ferro! \n");
-                continue;
+                strcpy(mensagemNotificacao,"Você minerou 1 ferro! ");
             }
             else if(armazenamentoCaverna[x][y] == 'F' && (verificarMochila(mochila,102) || verificarMochila(mochila,124) || verificarMochila(mochila,125)) == 0){
-                strcpy(mensagemNotificacao,"Parece que precisa de uma picareta melhor para isso \n");
-                continue;
+                strcpy(mensagemNotificacao,"Parece que precisa de uma picareta melhor para isso ");
             }
 
             if(armazenamentoCaverna[x][y] == 'D' && (verificarMochila(mochila,102) || verificarMochila(mochila,124)) == 1){
                 adicionarItemMundo(mochila,10);
                 armazenamentoCaverna[x][y] = '|';
-                strcpy(mensagemNotificacao,"Você minerou 1 diamante! \n");
-                continue;
+                strcpy(mensagemNotificacao,"Você minerou 1 diamante! ");
             }
             else if(armazenamentoCaverna[x][y] == 'D' && (verificarMochila(mochila,102) || verificarMochila(mochila,124)) == 0){
-                strcpy(mensagemNotificacao,"Parece que precisa de uma picareta melhor para isso \n");
-                continue;
+                strcpy(mensagemNotificacao,"Parece que precisa de uma picareta melhor para isso");
             }
+            gotoxy(0,TAM_CAVE+2);
+            printf("%-60s", mensagemNotificacao); 
+            if(kbhit()) getch();
+            while(1){
+                char c = getch();
+                if (c == 'w' || c == 'a' || c == 's' || c == 'd' || c == '\n' || c == '\r'){
+                    break;
+                }
+            }
+            gotoxy(0,TAM_CAVE+2);
+            printf("%-60s"," ");
+            mostrarMensagem = 0;
+            strcpy(mensagemNotificacao, "");
+            continue;
         }
+
         if(x_ant == x && y_ant == y){
             if(x == 0 || x == TAM_CAVE-1 || y == 0 || y == TAM_CAVE-1){
                 limparTela();
@@ -1912,6 +1930,7 @@ void minerar(int jogador_x, int jogador_y, struct Caverna cavernas[],int *indice
                 break;
             }
         }
+        dormir(50);
     }
 
     for(int i = 0;i<TAM_CAVE;i++){
@@ -1933,6 +1952,7 @@ void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice
     }
 
     if(dungeonAtual == NULL){
+
         dungeonAtual = &dungeons[*indice_dungeons];
 
         dungeonAtual->x = jogador_x;
@@ -1945,22 +1965,168 @@ void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice
         }
 
         dungeonAtual->salas = rand() % 10 + 3;
-        int cont = 0;
 
+        int **centroDungeons = (int **)malloc(dungeonAtual->salas * sizeof(int *));
+        if(centroDungeons == NULL){
+            printf("Erro de alocação de memória \n");
+            return;
+        }  
+        for(int i = 0;i<dungeonAtual->salas;i++){
+            centroDungeons[i] = (int *)calloc(2,sizeof(int));
+
+            if(centroDungeons[i] == NULL){
+                printf("Erro de alocação de memória \n");
+                return;
+            } 
+        }
+
+        int salaComCorredor[dungeonAtual->salas];
+        
+        int cont = 0;
+        int contConexoes = 0;
         while(cont < dungeonAtual->salas){
+            int podeConstruir = 1;
+
             int largura = rand() % 5 + 3;
             int altura = rand() % 5 + 3;
             
             int x_Sala = rand() % (TAM_DUNGEON - largura);
             int y_Sala = rand() % (TAM_DUNGEON - altura);
-            for(int i = x_Sala;i<x_Sala + largura;i++){
-                for(int j = y_Sala;j<y_Sala + altura;j++){
-                    dungeonAtual->mapaDungeon[i][j] = '.';
+
+            int centroX = x_Sala + (largura/2);
+            int centroY = y_Sala + (altura/2);
+
+            salaComCorredor[cont] = 0;
+
+            int checarInicioX = x_Sala - 2;
+            int checarInicioY = y_Sala - 2;
+            int checarFimX = x_Sala + largura + 2;
+            int checarFimY = y_Sala + altura + 2;
+
+            if(checarInicioX < 0){
+                checarInicioX = 0;
+            }
+            else if(checarInicioY < 0){
+                checarInicioY = 0;
+            }
+            else if(checarFimX > TAM_DUNGEON){
+                checarFimX = TAM_DUNGEON;
+            }
+            else if(checarFimY > TAM_DUNGEON){
+                checarFimY = TAM_DUNGEON;
+            }
+
+            for(int i = checarInicioX;i<checarFimX;i++){
+                for(int j = checarInicioY;j<checarFimY;j++){
+                    if(dungeonAtual->mapaDungeon[i][j] == '|'){
+                        podeConstruir = 0;
+                        i = checarFimX;
+                        break;
+                    }
                 }
             }
-            cont++;
+            if(podeConstruir){
+                centroDungeons[cont][0] = centroX;
+                centroDungeons[cont][1] = centroY;
+                for(int i = x_Sala;i < x_Sala + largura; i++){
+                    for(int j = y_Sala;j<y_Sala + altura;j++){
+                        dungeonAtual->mapaDungeon[i][j] = '|';
+                    }
+                }
+                cont++;
+            }
+        }
+
+        while(contConexoes < cont-1){
+            for(int i = 0; i < cont-1;i++){
+                if(salaComCorredor[i] == 0){
+                    int xInicial = centroDungeons[i][0];
+                    int yInicial = centroDungeons[i][1];
+
+                    int xFinal = centroDungeons[i+1][0];
+                    int yFinal = centroDungeons[i+1][1];
+
+                    while(xInicial != xFinal || yInicial != yFinal){
+                        if(xInicial < xFinal && xInicial < TAM_DUNGEON){
+                            dungeonAtual->mapaDungeon[xInicial++][yInicial] = '|';
+                        }
+                        else if(yInicial < yFinal && yInicial < TAM_DUNGEON){
+                            dungeonAtual->mapaDungeon[xInicial][yInicial++] = '|';
+                        }
+                        else if(xInicial > xFinal && xInicial > 0){
+                            dungeonAtual->mapaDungeon[xInicial--][yInicial] = '|';
+                        }
+                        else if(yInicial > yFinal && yInicial > 0){
+                            dungeonAtual->mapaDungeon[xInicial][yInicial--] = '|';
+                        }
+                    }
+                    salaComCorredor[i] = 1;
+                    contConexoes++;
+                }
+            }
+        }
+        
+        int xCorredorInicial = TAM_DUNGEON-1;
+        int xCorredorFinal = centroDungeons[0][0];
+
+        int yCorredorInicial = TAM_DUNGEON/2;
+        int yCorredorFinal = centroDungeons[0][1];
+        
+        while(xCorredorInicial != xCorredorFinal || yCorredorInicial != yCorredorFinal){
+            
+            if(xCorredorInicial > xCorredorFinal && xCorredorInicial > 0){
+                dungeonAtual->mapaDungeon[xCorredorInicial--][yCorredorInicial] = '|';
+            }
+            else if(yCorredorInicial < yCorredorFinal && yCorredorInicial < TAM_DUNGEON){
+                dungeonAtual->mapaDungeon[xCorredorInicial][yCorredorInicial++] = '|';
+            }
+            else if(yCorredorInicial > yCorredorFinal && yCorredorInicial > 0){
+                dungeonAtual->mapaDungeon[xCorredorInicial][yCorredorInicial--] = '|';
+            }
+            else if(xCorredorInicial < xCorredorFinal && xCorredorInicial < TAM_DUNGEON-1){
+                dungeonAtual->mapaDungeon[xCorredorInicial++][yCorredorInicial] = '|';
+            }
+        }
+
+        for(int i = 0; i < TAM_DUNGEON; i++){
+            for(int j = 0; j< TAM_DUNGEON;j++){
+                if(dungeonAtual->mapaDungeon[i][j] == '#'){
+                    int colisaoChao = 0;
+
+                    for(int di = -1; di <= 1;di++){
+                        for(int dj = -1; dj <= 1;dj++){
+                            int vizinhoI = i+di;
+                            int vizinhoJ = j+dj;
+
+                            if(vizinhoI > TAM_DUNGEON){
+                                vizinhoI = TAM_DUNGEON;
+                            }
+                            if(vizinhoI < 0){
+                                vizinhoI = 0;
+                            }
+                            if(vizinhoJ > TAM_DUNGEON){
+                                vizinhoJ = TAM_DUNGEON;
+                            }
+                            if(vizinhoJ < 0){
+                                vizinhoJ = 0;
+                            }
+
+                            if(dungeonAtual->mapaDungeon[vizinhoI][vizinhoJ] == '|'){
+                                colisaoChao = 1;
+                            }
+                        }
+                    }
+                    if(colisaoChao == 0){
+                        dungeonAtual->mapaDungeon[i][j] = ' ';
+                    }
+                }
+            }
         }
         (*indice_dungeons)++;
+        for(int i = 0;i<dungeonAtual->salas;i++){
+            free(centroDungeons[i]);
+        }
+        free(centroDungeons);
     }
 
     char **coordenadasDungeon = (char **)malloc(TAM_DUNGEON * sizeof(char *));
@@ -1987,11 +2153,39 @@ void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice
         }
     }
 
-    for(int i=0;i<TAM_DUNGEON;i++){
-        for(int j=0;j<TAM_DUNGEON;j++){
-            printf("%c",coordenadasDungeon[i][j]);
+    coordenadasDungeon[TAM_DUNGEON-1][TAM_DUNGEON/2] = 'P';
+    int x = TAM_DUNGEON-1;
+    int y = TAM_DUNGEON/2;
+
+    while(1){
+        gotoxy(0,0);
+        for(int i=0;i<TAM_DUNGEON;i++){
+            for(int j=0;j<TAM_DUNGEON;j++){
+                imprimirComEmojis(coordenadasDungeon[i][j]);
+            }
+            printf(" \n");
         }
-        printf(" \n");
+
+        int x_ant = x;
+        int y_ant = y;
+
+        movimentoJogador(coordenadasDungeon,armazenamentoDungeon,'P',&x,&y,TAM_DUNGEON);
+        if(armazenamentoDungeon[x][y] == '#'){
+            coordenadasDungeon[x][y] = '#';
+            coordenadasDungeon[x_ant][y_ant] = 'P';
+            x = x_ant;
+            y = y_ant;
+        }
+
+
+        if(x_ant == x && y_ant == y){
+            if(x == 0 || x == TAM_DUNGEON - 1 || y == 0 || y == TAM_DUNGEON -1){
+                limparTela();
+                printf("Você está saindo da dungeon \n");
+                dormir(1000);
+                break;
+            }
+        }
     }
 
     for(int i = 0;i<TAM_DUNGEON;i++){
@@ -2094,6 +2288,7 @@ int main(){
         int x_ant = x;
         int y_ant = y;
 
+        printf("\033[J");
         int armazenarComando = movimentoJogador(mundo,armazenamento,'P',&x,&y,TAM);
         if(armazenarComando == 1){
             break;
@@ -2114,15 +2309,13 @@ int main(){
         }
         if(armazenarComando == 8){
             if(mapaMascaraMineracao[x][y] == 1){
+                limparTela();
                 minerar(x,y,cavernas,&cavernasEncontradas,mochila);
                 continue;
             }
             if(mapaDungeons[x][y] == 1){
                 limparTela();
                 dungeon(x,y,dungeons,&dungeonsEncontradas,mochila,inimigo);
-                printf("\nAqui haverá dungeons em breve! \n");
-                getchar();
-                getchar();
                 continue;
             }
             else{
