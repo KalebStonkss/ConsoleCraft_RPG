@@ -122,6 +122,7 @@ struct Dungeon{
     int y;
     int salas;
     char mapaDungeon[TAM_DUNGEON][TAM_DUNGEON];
+    char campoVisao[TAM_DUNGEON][TAM_DUNGEON];
 };
 
 struct SlotItem{
@@ -218,7 +219,7 @@ void imprimirComEmojis(char caractere){
             printf(ANSI_BG_LARANJA_ESCURO "%-4s" ANSI_RESET, "🛑");
             break;
         case '#':
-            printf("%-4s","🟫");
+            printf("%-4s","🔳");
             break;
         case 'Z':
         case 'E':
@@ -1943,10 +1944,16 @@ void minerar(int jogador_x, int jogador_y, struct Caverna cavernas[],int *indice
 
 void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice_dungeons, struct SlotItem mochila[], struct Inimigo inimigo[]){
     struct Dungeon *dungeonAtual = NULL;
+    int tileVisto[TAM_DUNGEON][TAM_DUNGEON] = {0};
 
     for(int i = 0;i< *indice_dungeons;i++){
         if(dungeons[i].x == jogador_x && dungeons[i].y == jogador_y){
             dungeonAtual = &dungeons[i];
+            for(int i = 0; i < TAM_DUNGEON;i++){
+                for(int j = 0; j< TAM_DUNGEON;j++){
+                    tileVisto[i][j] = dungeonAtual->campoVisao[i][j];
+                }
+            }
             break;
         }
     }
@@ -2148,28 +2155,64 @@ void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice
 
     for(int i = 0;i<TAM_DUNGEON;i++){
         for(int j = 0;j<TAM_DUNGEON;j++){
+
             coordenadasDungeon[i][j] = dungeonAtual->mapaDungeon[i][j];
             armazenamentoDungeon[i][j] = dungeonAtual->mapaDungeon[i][j];
         }
     }
 
+    if(coordenadasDungeon[TAM_DUNGEON-1][TAM_DUNGEON/2] == '#'){
+        coordenadasDungeon[TAM_DUNGEON-1][TAM_DUNGEON/2] = '|';
+    }
     coordenadasDungeon[TAM_DUNGEON-1][TAM_DUNGEON/2] = 'P';
     int x = TAM_DUNGEON-1;
     int y = TAM_DUNGEON/2;
 
+    int raio = 4;
+
     while(1){
+        //função pra gerar círculo de visão
+        for(int i = x - raio; i <= raio + x;i++){
+            for(int j = y - raio; j <= raio + y;j++){
+                
+                if(i < 0 || i >= TAM_DUNGEON || j < 0 || j >= TAM_DUNGEON){
+                    continue;
+                }
+
+                int distanciaX = i - x;
+                int distanciaY = j - y;
+
+                if((distanciaX*distanciaX) + (distanciaY*distanciaY) <= raio*raio){
+                    tileVisto[i][j] = 1;
+                }
+            }
+        }
+
         gotoxy(0,0);
         for(int i=0;i<TAM_DUNGEON;i++){
             for(int j=0;j<TAM_DUNGEON;j++){
-                imprimirComEmojis(coordenadasDungeon[i][j]);
+                if(tileVisto[i][j] == 1){
+                    if(i == x && j == y){
+                        imprimirComEmojis('P');
+                    }
+                    else{
+                        imprimirComEmojis(coordenadasDungeon[i][j]);
+                    }
+                }
+                else{
+                    imprimirComEmojis(' ');
+                }
+                dungeonAtual->campoVisao[i][j] = tileVisto[i][j];
             }
             printf(" \n");
         }
+
 
         int x_ant = x;
         int y_ant = y;
 
         movimentoJogador(coordenadasDungeon,armazenamentoDungeon,'P',&x,&y,TAM_DUNGEON);
+
         if(armazenamentoDungeon[x][y] == '#'){
             coordenadasDungeon[x][y] = '#';
             coordenadasDungeon[x_ant][y_ant] = 'P';
