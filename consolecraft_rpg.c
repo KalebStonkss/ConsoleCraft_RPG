@@ -123,6 +123,7 @@ struct Dungeon{
     int salas;
     char mapaDungeon[TAM_DUNGEON][TAM_DUNGEON];
     char campoVisao[TAM_DUNGEON][TAM_DUNGEON];
+    char mascaraInimigos[TAM_DUNGEON][TAM_DUNGEON];
 };
 
 struct SlotItem{
@@ -1942,9 +1943,11 @@ void minerar(int jogador_x, int jogador_y, struct Caverna cavernas[],int *indice
     free(armazenamentoCaverna);
 }
 
-void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice_dungeons, struct SlotItem mochila[], struct Inimigo inimigo[]){
+void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice_dungeons, struct SlotItem mochila[], struct Inimigo inimigo[],int *quantidade,int *vida, int ataque){
     struct Dungeon *dungeonAtual = NULL;
     int tileVisto[TAM_DUNGEON][TAM_DUNGEON] = {0};
+    int quantidadeInimigosAnterior = *quantidade;
+    int quantidadeInimigosAtual = *quantidade;
 
     for(int i = 0;i< *indice_dungeons;i++){
         if(dungeons[i].x == jogador_x && dungeons[i].y == jogador_y){
@@ -2168,6 +2171,76 @@ void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice
     int x = TAM_DUNGEON-1;
     int y = TAM_DUNGEON/2;
 
+    int quantidadeSpawn = rand() % 5 + 1;
+    int idInimigos[3] = {501,502,503};
+
+    for(int i = 0;i<quantidadeSpawn;i++){
+        if(*quantidade >= 50){
+            break;
+        }
+        inimigo[*quantidade].id = idInimigos[rand() % 3];
+        switch(inimigo[*quantidade].id){
+            case 501:
+                inimigo[*quantidade].vida = 35;
+                inimigo[*quantidade].ataque = 10;
+                int xZumbi = rand() % TAM_DUNGEON;
+                int yZumbi = rand() % TAM_DUNGEON;
+                while(coordenadasDungeon[xZumbi][yZumbi] != '|' && coordenadasDungeon[xZumbi][yZumbi] != 'P'){
+                    xZumbi = rand() % TAM_DUNGEON;
+                    yZumbi = rand() % TAM_DUNGEON;
+                }
+                inimigo[*quantidade].x = xZumbi;
+                inimigo[*quantidade].y = yZumbi;
+                inimigo[*quantidade].estadoAtual = 1;
+                inimigo[*quantidade].espacoLuta = 6;
+                inimigo[*quantidade].quantidadeItem = 1;
+
+                coordenadasDungeon[xZumbi][yZumbi] = 'Z';
+                (*quantidade)++;
+            break;
+
+            case 502:
+                inimigo[*quantidade].item = 2;
+                inimigo[*quantidade].vida = 30;
+                inimigo[*quantidade].ataque = 20;
+                int xEsqueleto = rand() % TAM_DUNGEON;
+                int yEsqueleto = rand() % TAM_DUNGEON;
+                while(coordenadasDungeon[xEsqueleto][yEsqueleto] != '|' && coordenadasDungeon[xEsqueleto][yEsqueleto] != 'P'){
+                    xEsqueleto = rand() % TAM_DUNGEON;
+                    yEsqueleto = rand() % TAM_DUNGEON;
+                }
+                inimigo[*quantidade].x = xEsqueleto;
+                inimigo[*quantidade].y = yEsqueleto;
+                inimigo[*quantidade].estadoAtual = 1;
+                inimigo[*quantidade].espacoLuta = 6;
+                inimigo[*quantidade].quantidadeItem = 1;
+
+                coordenadasDungeon[xEsqueleto][yEsqueleto] = 'E';
+                (*quantidade)++;
+            break;
+
+            case 503:
+                inimigo[*quantidade].item = 11;
+                inimigo[*quantidade].vida = 25;
+                inimigo[*quantidade].ataque = 4;
+                int xAranha = rand() % TAM_DUNGEON;
+                int yAranha = rand() % TAM_DUNGEON;
+                while(coordenadasDungeon[xAranha][yAranha] != '|' && coordenadasDungeon[xAranha][yAranha] != 'P'){
+                    xAranha = rand() % TAM_DUNGEON;
+                    yAranha = rand() % TAM_DUNGEON;
+                }
+                inimigo[*quantidade].x = xAranha;
+                inimigo[*quantidade].y = yAranha;
+                inimigo[*quantidade].estadoAtual = 1;
+                inimigo[*quantidade].espacoLuta = 6;
+                inimigo[*quantidade].quantidadeItem = 1;
+
+                coordenadasDungeon[xAranha][yAranha] = 'S';
+                (*quantidade)++;
+            break;
+        }
+    }
+
     int raio = 4;
 
     while(1){
@@ -2220,6 +2293,36 @@ void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice
             y = y_ant;
         }
 
+        for(int i = quantidadeInimigosAtual; i<*quantidade;i++){
+            if(inimigo[i].estadoAtual && x == inimigo[i].x && y == inimigo[i].y){
+                limparTela();
+                int luta = mainAtaque(vida,ataque,inimigo,i,mochila);
+                if(luta == 1){
+                    printf("\nGame Over :<\n Reinicie o jogo! \n");
+                    exit(0);
+                }
+                if(luta == 2){
+                    x = x_ant;
+                    y = y_ant;
+                    char tipoInimigo = (inimigo[i].id == 501) ? 'Z' : (inimigo[i].id == 502) ? 'E' : 'S';
+                    coordenadasDungeon[inimigo[i].x][inimigo[i].y] = tipoInimigo; 
+
+                    coordenadasDungeon[x][y] = 'P';
+                    limparTela();
+                }
+                else{
+                    inimigo[i].estadoAtual = 0;
+                    coordenadasDungeon[x][y] = 'P';
+                    armazenamentoDungeon[x][y] = '|';
+                    limparTela();
+                    printf("--------------------------\n");
+                    printf("Você venceu o inimigo!\n Pressione Enter para continuar! \n");
+                    getchar();
+                    getchar();
+                }
+            }
+        }
+
 
         if(x_ant == x && y_ant == y){
             if(x == 0 || x == TAM_DUNGEON - 1 || y == 0 || y == TAM_DUNGEON -1){
@@ -2231,6 +2334,7 @@ void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice
         }
     }
 
+    *quantidade = quantidadeInimigosAnterior;
     for(int i = 0;i<TAM_DUNGEON;i++){
         free(coordenadasDungeon[i]);
         free(armazenamentoDungeon[i]);
@@ -2250,7 +2354,7 @@ int main(){
     int quantidadeReceitas = 0;
     bancoReceitas(receitas,&quantidadeReceitas);
 
-    struct Inimigo inimigo[20];
+    struct Inimigo inimigo[50];
     int quantidadeInimigos = 0;
 
     struct Vila vilas[MAX_VILAS_ENCONTRADAS];
@@ -2358,7 +2462,7 @@ int main(){
             }
             if(mapaDungeons[x][y] == 1){
                 limparTela();
-                dungeon(x,y,dungeons,&dungeonsEncontradas,mochila,inimigo);
+                dungeon(x,y,dungeons,&dungeonsEncontradas,mochila,inimigo,&quantidadeInimigos,&vidaInicialJogador,ataqueInicialJogador);
                 continue;
             }
             else{
@@ -2412,7 +2516,7 @@ int main(){
                 if(luta == 2){
                     x = x_ant;
                     y = y_ant;
-                    char tipoInimigo = (inimigo[i].id == 1) ? 'Z' : 'E';
+                    char tipoInimigo = (inimigo[i].id == 501) ? 'Z' : (inimigo[i].id == 502) ? 'E' : 'S';
                     mundo[inimigo[i].x][inimigo[i].y] = tipoInimigo; 
 
                     mundo[x][y] = 'P';
