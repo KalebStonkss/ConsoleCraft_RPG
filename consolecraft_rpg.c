@@ -2359,8 +2359,28 @@ void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice
                     dungeonAtual->baus[i].aberto = 1;
                     limparTela();
                     printf("Oops, você caiu em uma armadilha\n");
-                    getchar();
-                    getchar();
+                    dormir(1000);
+                    for(int i = quantidadeInimigosAtual;i<*quantidade;i++){
+                        limparTela();
+                        int luta = mainAtaque(vida,ataque,inimigo,i,mochila);
+
+                        if(luta == 1){
+                            printf("\nGame Over :<\n Reinicie o jogo! \n");
+                            exit(0);
+                        }
+                        if(luta == 2){
+                            limparTela();
+                        }
+                        else{
+                            inimigo[i].estadoAtual = 0;
+                            limparTela();
+                            printf("--------------------------\n");
+                            printf("Você venceu o inimigo!\n Pressione Enter para continuar! \n");
+                            getchar();
+                            getchar();
+                        }
+                        break;
+                    }
                 }
                 else if(dungeonAtual->baus[i].temArmadilha == 0 && dungeonAtual->baus[i].aberto == 0){
                     dungeonAtual->baus[i].aberto = 1;
