@@ -131,6 +131,7 @@ struct Dungeon{
 
     struct Bau baus[15];
     int quantidadeBaus;
+    int quantidadeBausArmadilha;
 
     char mapaDungeon[TAM_DUNGEON][TAM_DUNGEON];
     char campoVisao[TAM_DUNGEON][TAM_DUNGEON];
@@ -922,7 +923,7 @@ int defender(struct SlotItem mochila[]){
     free(inventarioCura);
     return itemEscolhido;
 }
-int mainAtaque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,struct SlotItem mochila[]){
+int mainAtaque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,struct SlotItem mochila[],int fugaDisponivel){
     int espacoTotal = inimigo1[indice].espacoLuta;
 
     int x_jogador = espacoTotal/2;
@@ -966,17 +967,23 @@ int mainAtaque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,stru
         scanf(" %c",&comando);
         comando = toupper(comando);
         if(comando == 'X'){
-            limparTela();
-            printf("🤠 - Não tô muito afim de lutar agora \n");
-            inimigo1[indice].vida = vidaInimigoAntes;
-            dormir(1500);
-            for(int i = 0;i<espacoTotal;i++){
-                free(coordenadasLuta[i]);
-                free(armazenamentoLuta[i]);
+            if(fugaDisponivel == 1){
+                limparTela();
+                printf("🤠 - Não tô muito afim de lutar agora \n");
+                inimigo1[indice].vida = vidaInimigoAntes;
+                dormir(1500);
+                for(int i = 0;i<espacoTotal;i++){
+                    free(coordenadasLuta[i]);
+                    free(armazenamentoLuta[i]);
+                }
+                free(coordenadasLuta);
+                free(armazenamentoLuta);
+                return 2;
             }
-            free(coordenadasLuta);
-            free(armazenamentoLuta);
-            return 2;
+            else{
+                printf("Sem escapatória aqui!! \n");
+                continue;
+            }
         }
         if(comando == 'A'){
             int IdAtaque = atacar(mochila);
@@ -2067,6 +2074,9 @@ void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice
                     dungeonAtual->baus[dungeonAtual->quantidadeBaus].y = centroY;
                     dungeonAtual->baus[dungeonAtual->quantidadeBaus].aberto = 0;
                     dungeonAtual->baus[dungeonAtual->quantidadeBaus].temArmadilha = rand() % 2;
+                    if(dungeonAtual->baus[dungeonAtual->quantidadeBaus].temArmadilha == 1){
+                        dungeonAtual->quantidadeBausArmadilha++;
+                    }
                     dungeonAtual->quantidadeBaus++;
                 }
 
@@ -2326,7 +2336,7 @@ void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice
         for(int i = quantidadeInimigosAtual; i<*quantidade;i++){
             if(inimigo[i].estadoAtual && x == inimigo[i].x && y == inimigo[i].y){
                 limparTela();
-                int luta = mainAtaque(vida,ataque,inimigo,i,mochila);
+                int luta = mainAtaque(vida,ataque,inimigo,i,mochila,1);
                 if(luta == 1){
                     printf("\nGame Over :<\n Reinicie o jogo! \n");
                     exit(0);
@@ -2356,31 +2366,73 @@ void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice
         for(int i = 0; i<dungeonAtual->quantidadeBaus;i++){
             if(x == dungeonAtual->baus[i].x && y == dungeonAtual->baus[i].y){
                 if(dungeonAtual->baus[i].temArmadilha == 1 && dungeonAtual->baus[i].aberto == 0){
-                    dungeonAtual->baus[i].aberto = 1;
                     limparTela();
                     printf("Oops, você caiu em uma armadilha\n");
                     dormir(1000);
-                    for(int i = quantidadeInimigosAtual;i<*quantidade;i++){
-                        limparTela();
-                        int luta = mainAtaque(vida,ataque,inimigo,i,mochila);
-
-                        if(luta == 1){
-                            printf("\nGame Over :<\n Reinicie o jogo! \n");
-                            exit(0);
-                        }
-                        if(luta == 2){
-                            limparTela();
-                        }
-                        else{
-                            inimigo[i].estadoAtual = 0;
-                            limparTela();
-                            printf("--------------------------\n");
-                            printf("Você venceu o inimigo!\n Pressione Enter para continuar! \n");
-                            getchar();
-                            getchar();
-                        }
+                    if(*quantidade >= 50){
+                        printf("Você ia cair em uma armadilha, mas aparentemente ela quebrou. Ufa, que sorte! \n");
+                        dungeonAtual->baus[i].aberto = 0;
                         break;
                     }
+                    inimigo[*quantidade].id = idInimigos[rand() % 3];
+
+                    switch(inimigo[*quantidade].id){
+                        case 501:
+                            inimigo[*quantidade].vida = 35;
+                            inimigo[*quantidade].ataque = 10;
+                            inimigo[*quantidade].x = dungeonAtual->baus[i].x;
+                            inimigo[*quantidade].y = dungeonAtual->baus[i].y;
+                            inimigo[*quantidade].estadoAtual = 1;
+                            inimigo[*quantidade].espacoLuta = 6;
+                            inimigo[*quantidade].quantidadeItem = 1;
+                            (*quantidade)++;
+                        break;
+
+                        case 502:
+                            inimigo[*quantidade].item = 2;
+                            inimigo[*quantidade].vida = 30;
+                            inimigo[*quantidade].ataque = 20;
+                            inimigo[*quantidade].x = dungeonAtual->baus[i].x;
+                            inimigo[*quantidade].y = dungeonAtual->baus[i].y;
+                            inimigo[*quantidade].estadoAtual = 1;
+                            inimigo[*quantidade].espacoLuta = 6;
+                            inimigo[*quantidade].quantidadeItem = 1;
+                            (*quantidade)++;
+                        break;
+
+                        case 503:
+                            inimigo[*quantidade].item = 11;
+                            inimigo[*quantidade].vida = 25;
+                            inimigo[*quantidade].ataque = 4;
+                            inimigo[*quantidade].x = dungeonAtual->baus[i].x;
+                            inimigo[*quantidade].y = dungeonAtual->baus[i].y;
+                            inimigo[*quantidade].estadoAtual = 1;
+                            inimigo[*quantidade].espacoLuta = 6;
+                            inimigo[*quantidade].quantidadeItem = 1;
+                            (*quantidade)++;
+                        break;
+                    }
+                    limparTela();
+                    int luta = mainAtaque(vida,ataque,inimigo,*quantidade-1,mochila,0);
+
+                    if(luta == 1){
+                        printf("\nGame Over :<\n Reinicie o jogo! \n");
+                        exit(0);
+                    }
+                    if(luta == 2){
+                        limparTela();
+                    }
+                    else{
+                        dungeonAtual->baus[i].aberto = 1;
+                        inimigo[*quantidade-1].estadoAtual = 0;
+                        limparTela();
+                        printf("--------------------------\n");
+                        printf("Você venceu o inimigo!\n Pressione Enter para continuar! \n");
+                        getchar();
+                        getchar();
+                    }
+                    break;
+                    
                 }
                 else if(dungeonAtual->baus[i].temArmadilha == 0 && dungeonAtual->baus[i].aberto == 0){
                     dungeonAtual->baus[i].aberto = 1;
@@ -2589,7 +2641,7 @@ int main(){
         for(int i = 0; i<quantidadeInimigos;i++){
             if(inimigo[i].estadoAtual && x == inimigo[i].x && y == inimigo[i].y){
                 limparTela();
-                int luta = mainAtaque(&vidaInicialJogador,ataqueInicialJogador,inimigo,i,mochila);
+                int luta = mainAtaque(&vidaInicialJogador,ataqueInicialJogador,inimigo,i,mochila,1);
                 if(luta == 1){
                     printf("\nGame Over :<\n Reinicie o jogo! \n");
                     exit(0);
