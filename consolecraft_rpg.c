@@ -117,10 +117,21 @@ struct Caverna{
     char mapaCaverna[TAM_CAVE][TAM_CAVE];
 };
 
+struct Bau{
+    int x;
+    int y;
+    int aberto;
+    int temArmadilha;
+};
+
 struct Dungeon{
     int x;
     int y;
     int salas;
+
+    struct Bau baus[15];
+    int quantidadeBaus;
+
     char mapaDungeon[TAM_DUNGEON][TAM_DUNGEON];
     char campoVisao[TAM_DUNGEON][TAM_DUNGEON];
     char mascaraInimigos[TAM_DUNGEON][TAM_DUNGEON];
@@ -187,11 +198,12 @@ void gotoxy(int x, int y){
 // | = 🌑
 // A = 🌾
 // B = 🏫
+// C = 💼
 // F = 🔩
 // I = 🧓
 // M = 🟫
 // V|H = 🏠
-// Z|E = 💀
+// Z|E|S = 💀
 // 0 = 📕
 // 1 = 📘
 // 2 = 📗
@@ -255,6 +267,9 @@ void imprimirComEmojis(char caractere){
             printf(ANSI_BG_LIGHT_GREEN);
             printf("%-4s", "🏫");
             printf(ANSI_RESET);
+            break;
+        case 'C':
+            printf("%-4s", "💼");
             break;
         case 'D':
             printf("%-4s","💎");
@@ -1994,6 +2009,9 @@ void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice
         
         int cont = 0;
         int contConexoes = 0;
+
+        dungeonAtual->quantidadeBaus = 0;
+
         while(cont < dungeonAtual->salas){
             int podeConstruir = 1;
 
@@ -2036,6 +2054,7 @@ void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice
                 }
             }
             if(podeConstruir){
+                int temBau = rand() % 3;
                 centroDungeons[cont][0] = centroX;
                 centroDungeons[cont][1] = centroY;
                 for(int i = x_Sala;i < x_Sala + largura; i++){
@@ -2043,6 +2062,14 @@ void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice
                         dungeonAtual->mapaDungeon[i][j] = '|';
                     }
                 }
+                if(temBau == 1){
+                    dungeonAtual->baus[dungeonAtual->quantidadeBaus].x = centroX;
+                    dungeonAtual->baus[dungeonAtual->quantidadeBaus].y = centroY;
+                    dungeonAtual->baus[dungeonAtual->quantidadeBaus].aberto = 0;
+                    dungeonAtual->baus[dungeonAtual->quantidadeBaus].temArmadilha = rand() % 2;
+                    dungeonAtual->quantidadeBaus++;
+                }
+
                 cont++;
             }
         }
@@ -2132,6 +2159,9 @@ void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice
                 }
             }
         }
+        for(int i = 0;i<dungeonAtual->quantidadeBaus;i++){
+            dungeonAtual->mapaDungeon[dungeonAtual->baus[i].x][dungeonAtual->baus[i].y] = 'C';
+        }
         (*indice_dungeons)++;
         for(int i = 0;i<dungeonAtual->salas;i++){
             free(centroDungeons[i]);
@@ -2185,7 +2215,7 @@ void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice
                 inimigo[*quantidade].ataque = 10;
                 int xZumbi = rand() % TAM_DUNGEON;
                 int yZumbi = rand() % TAM_DUNGEON;
-                while(coordenadasDungeon[xZumbi][yZumbi] != '|' && coordenadasDungeon[xZumbi][yZumbi] != 'P'){
+                while(coordenadasDungeon[xZumbi][yZumbi] != '|' && coordenadasDungeon[xZumbi][yZumbi] != 'P' && coordenadasDungeon[xZumbi][yZumbi] != 'C'){
                     xZumbi = rand() % TAM_DUNGEON;
                     yZumbi = rand() % TAM_DUNGEON;
                 }
@@ -2205,7 +2235,7 @@ void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice
                 inimigo[*quantidade].ataque = 20;
                 int xEsqueleto = rand() % TAM_DUNGEON;
                 int yEsqueleto = rand() % TAM_DUNGEON;
-                while(coordenadasDungeon[xEsqueleto][yEsqueleto] != '|' && coordenadasDungeon[xEsqueleto][yEsqueleto] != 'P'){
+                while(coordenadasDungeon[xEsqueleto][yEsqueleto] != '|' && coordenadasDungeon[xEsqueleto][yEsqueleto] != 'P' && coordenadasDungeon[xEsqueleto][yEsqueleto] != 'C'){
                     xEsqueleto = rand() % TAM_DUNGEON;
                     yEsqueleto = rand() % TAM_DUNGEON;
                 }
@@ -2225,7 +2255,7 @@ void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice
                 inimigo[*quantidade].ataque = 4;
                 int xAranha = rand() % TAM_DUNGEON;
                 int yAranha = rand() % TAM_DUNGEON;
-                while(coordenadasDungeon[xAranha][yAranha] != '|' && coordenadasDungeon[xAranha][yAranha] != 'P'){
+                while(coordenadasDungeon[xAranha][yAranha] != '|' && coordenadasDungeon[xAranha][yAranha] != 'P' && coordenadasDungeon[xAranha][yAranha] != 'C'){
                     xAranha = rand() % TAM_DUNGEON;
                     yAranha = rand() % TAM_DUNGEON;
                 }
@@ -2317,6 +2347,37 @@ void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice
                     limparTela();
                     printf("--------------------------\n");
                     printf("Você venceu o inimigo!\n Pressione Enter para continuar! \n");
+                    getchar();
+                    getchar();
+                }
+            }
+        }
+
+        for(int i = 0; i<dungeonAtual->quantidadeBaus;i++){
+            if(x == dungeonAtual->baus[i].x && y == dungeonAtual->baus[i].y){
+                if(dungeonAtual->baus[i].temArmadilha == 1 && dungeonAtual->baus[i].aberto == 0){
+                    dungeonAtual->baus[i].aberto = 1;
+                    limparTela();
+                    printf("Oops, você caiu em uma armadilha\n");
+                    getchar();
+                    getchar();
+                }
+                else if(dungeonAtual->baus[i].temArmadilha == 0 && dungeonAtual->baus[i].aberto == 0){
+                    dungeonAtual->baus[i].aberto = 1;
+                    int moedas = rand() % 20 + 1;
+                    int cont = 0;
+                    while(cont < moedas){
+                        adicionarItemMundo(mochila,6);
+                        cont++;
+                    }
+                    limparTela();
+                    printf("Você ganhou %d moedas!!\n",moedas);
+                    getchar();
+                    getchar();
+                }
+                else{
+                    limparTela();
+                    printf("Esse baú está vazio \n");
                     getchar();
                     getchar();
                 }
