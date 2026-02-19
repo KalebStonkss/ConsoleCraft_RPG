@@ -235,6 +235,9 @@ void imprimirComEmojis(char caractere){
         case '#':
             printf("%-4s","🔳");
             break;
+        case '%':
+            printf("%-4s","🌀︎");
+            break;
         case 'Z':
         case 'E':
         case 'S':
@@ -557,6 +560,8 @@ const char* bibliotecaIDs(int id){
         case 123: return "Poção de Cura(grande)";
         case 124: return "Picareta de Diamante";//Craftável
         case 125: return "Picareta de Pedra";//Craftável
+        case 126: return "Balde (com água)";
+        case 127: return "Portal do Espaço Etéreo 🌀︎";
 
         //ID(501-550) -> Inimigos/Personagens
         case 501: return "Zumbi";
@@ -1235,6 +1240,16 @@ void bancoReceitas(struct Receita receitas[], int *quantidadeReceitas){
     receitas[i].id_tres = 0;
     receitas[i].quantidade_tres = 0;
     i++;
+
+    receitas[i].itemDesejado = 127;
+    receitas[i].quantidade_um = 9;
+    receitas[i].id_um = 5;
+    receitas[i].id_dois = 126;
+    receitas[i].quantidade_dois = 1;
+    receitas[i].id_tres = 0;
+    receitas[i].quantidade_tres = 0;
+    i++;
+
     *quantidadeReceitas = i;
 }
 
@@ -1308,7 +1323,7 @@ void removerItemsCrafting(struct SlotItem mochila[],struct Receita receita_escol
         }
     }
 }
-void crafting(struct SlotItem mochila[], struct Receita receitas[],int totalReceitas){
+void crafting(struct SlotItem mochila[], struct Receita receitas[],int totalReceitas,int *x,int *y,char **armazenamento,char **mundo){
     int id_escolhido = -1;
     int podeFabricar[100] = {0};
     printf("Você está no sistema de crafting\n");
@@ -1344,6 +1359,9 @@ void crafting(struct SlotItem mochila[], struct Receita receitas[],int totalRece
         return;
     }
     
+    if(podeFabricar[11] == 1 && armazenamento[*x][*y] == '.'){
+        armazenamento[*x][*y] = '%';
+    }
     if(podeFabricar[id_escolhido] == 1){
         adicionarItemCrafting(mochila,receitas[id_escolhido].itemDesejado);
         removerItemsCrafting(mochila,receitas[id_escolhido]);
@@ -2594,7 +2612,7 @@ int main(){
         }
         if(armazenarComando == 7){
             limparTela();
-            crafting(mochila,receitas,quantidadeReceitas);
+            crafting(mochila,receitas,quantidadeReceitas,&x,&y,armazenamento,mundo);
             getchar();
             limparTela();
             continue;
@@ -2648,6 +2666,20 @@ int main(){
         if(armazenamento[x][y] == '~' && chance < 10){
             adicionarItemMundo(mochila,5);
             adicionarLog(logMensagens, "Você coletou +1 prisma luminosa",&mensagensPorTurno);
+        }
+
+        if(armazenamento[x][y] == '~' && verificarMochila(mochila,103) == 1){
+            adicionarItemMundo(mochila,126);
+            for(int i = 0;i<15;i++){
+                if(mochila[i].id == 103){
+                    mochila[i].quantidade--;
+                    if(mochila[i].quantidade == 0){
+                        mochila[i].id = -1;
+                    }
+                    break;
+                }
+            }
+            adicionarLog(logMensagens, "Você encheu o balde com água!",&mensagensPorTurno);
         }
         //Checagem da posição do jogador e do inimigo
         for(int i = 0; i<quantidadeInimigos;i++){
