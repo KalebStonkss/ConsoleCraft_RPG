@@ -752,9 +752,17 @@ int mira(char **coordenadasLuta, char **armazenamentoLuta,int espacoTotal,struct
     time_t tempoInicial = time(NULL);
     double limite = 10.0;
 
+    int quadros = 0;
+
     hideCursor();
     interfaceAtaque(coordenadasLuta,armazenamentoLuta,&tempX,&tempY,espacoTotal,inimigo1,vida,indice,0);
     printf("Digite [Enter] para calibrar sua mira \n");
+
+    #ifdef _WIN32
+        while(kbhit()) getch();
+    #else
+        tcflush(STDIN_FILENO, TCIFLUSH);
+    #endif
     while(1){
         char pontoEscolhido;
         time_t tempoUsado = time(NULL);
@@ -784,13 +792,17 @@ int mira(char **coordenadasLuta, char **armazenamentoLuta,int espacoTotal,struct
             }
         }
         printf("\n");
+        fflush(stdout);
 
         if(kbhit()){
             pontoEscolhido = getch();
-            if(pontoEscolhido == '\n' || pontoEscolhido == '\r'){
-                return armazenamentoMira[pontoAtual];
-                break;
+            if(quadros > 10){
+                if(pontoEscolhido == '\n' || pontoEscolhido == '\r'){
+                    return armazenamentoMira[pontoAtual];
+                    break;
+                }
             }
+            
         }
 
         mira[pontoAtual] = armazenamentoMira[pontoAtual];
@@ -811,6 +823,7 @@ int mira(char **coordenadasLuta, char **armazenamentoLuta,int espacoTotal,struct
 
         mira[pontoAtual] = 3;
 
+        quadros++;
         dormir(50);
     }
     return 0;
@@ -1009,7 +1022,7 @@ int mainAtaque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,stru
                 printf("Você até tentou atacar, mas o inimigo estava muito longe pra alcançar ele \n");
                 continue;
             }
-            if(IdAtaque > 108 && IdAtaque < 115 && distanciaJogadorInimigo > 1.3){
+            if(IdAtaque >= 109 && IdAtaque < 115 && distanciaJogadorInimigo > 1.3){
                 limparTela();
                 interfaceAtaque(coordenadasLuta,armazenamentoLuta,&x_jogador,&y_jogador,espacoTotal,inimigo1,vida,indice,0);
                 int tipoMira = mira(coordenadasLuta,armazenamentoLuta,espacoTotal,inimigo1,vida,indice,0);
@@ -1031,7 +1044,7 @@ int mainAtaque(int *vida, int ataque, struct Inimigo inimigo1[], int indice,stru
                     break;
                 }
             }
-            if(IdAtaque > 108 && IdAtaque < 115 && distanciaJogadorInimigo <= 1.3){
+            if(IdAtaque >= 109 && IdAtaque < 115 && distanciaJogadorInimigo <= 1.3){
                 limparTela();
                 interfaceAtaque(coordenadasLuta,armazenamentoLuta,&x_jogador,&y_jogador,espacoTotal,inimigo1,vida,indice,0);
                 printf("O inimigo teve bons reflexos e te atacou antes que começasse a mirar!\n");
@@ -2428,8 +2441,7 @@ void dungeon(int jogador_x, int jogador_y, struct Dungeon dungeons[],int *indice
                         limparTela();
                         printf("--------------------------\n");
                         printf("Você venceu o inimigo!\n Pressione Enter para continuar! \n");
-                        getchar();
-                        getchar();
+                        
                     }
                     break;
                     
